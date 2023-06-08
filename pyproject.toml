@@ -1,0 +1,25 @@
+[project]
+name = "quick-seo-audit-tools"
+version = "0.0.1"
+authors = [
+  { name="Geoff Lambeth", email="geoffrey.lambeth@geofflambeth.com" },
+]
+description = "CLI tools to quickly collect data and help audit webpages with tedious SEO tasks in mind."
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "requests",
+    "bs4",
+    "lxml"
+]
+
+[project.scripts]
+seo-tools = "quick_seo_audit_tools.__main__:main_cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
