@@ -26,7 +26,7 @@ def getLinksStatus():
         if args.output_csv is not False:
             with open(args.output_csv, 'w') as f:
                 write = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator='\n')
-                write.writerow(['source URL','found URL','initial response status','destination URL','final response status'])
+                write.writerow(['source URL','found URL','link text','initial response status','destination URL','final response status','notes and exception responses'])
 
         combinedPageLookups = matchPagesWithFoundUrls(allPageStatus, foundUrlsLookup)
         cliPrint("ALL PAGES FOUND WITH STATUS")
@@ -158,7 +158,11 @@ def searchForHyperlinksOnPage(pageUrl, allPageStatus=[], foundUrlsLookup=[], alr
     links = pageSoup.find_all('a', {"href" : re.compile(r"http.+")})
     links.append({'href':pageUrl})
     for i in links:
-        foundUrlsLookup.append([pageUrl, i['href']])
+        try:
+            linkText = i.text.strip()
+        except:
+            linkText = "no link text found"
+        foundUrlsLookup.append([pageUrl, i['href'], linkText])
         if i['href'] in alreadyAuditedPages:
             cliPrint("already found this URL: "+i['href'])
         else:
@@ -176,7 +180,7 @@ def checkHyperlinkUrl(foundUrl):
         linkInfo = [foundUrl, historyStatus, r.url, r.status_code]
     except Exception as inst:
         print("\n\n\nERROR: exception in found URL request\n\n\n")
-        linkInfo = [foundUrl, "EXCEPTION. "+str(inst), "--", "--"]
+        linkInfo = [foundUrl,"EXCEPTION","--","--",str(inst)]
     cliPrint(linkInfo)
     return linkInfo
 
