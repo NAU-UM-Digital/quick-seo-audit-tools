@@ -1,6 +1,6 @@
 [project]
 name = "quick-seo-audit-tools"
-version = "0.0.2-beta"
+version = "0.0.3-beta"
 authors = [
   { name="Geoff Lambeth", email="geoffrey.lambeth@geofflambeth.com" },
 ]
@@ -14,8 +14,9 @@ classifiers = [
 dependencies = [
     "requests",
     "bs4",
-    "lxml"
-]
+    "lxml",
+    "validators"
+    ]
 
 [project.scripts]
 seo-tools = "quick_seo_audit_tools.__main__:main_cli"

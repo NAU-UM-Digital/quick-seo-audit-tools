@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import csv
 import re
 import lxml
+from urllib.parse import urljoin, urlsplit, urlunsplit
 
 def testAppRequestGet():
     global args
@@ -26,7 +27,7 @@ def getLinksStatus():
         if args.output_csv is not False:
             with open(args.output_csv, 'w') as f:
                 write = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator='\n')
-                write.writerow(['source URL','found URL','link text','initial response status','destination URL','final response status','notes and exception responses'])
+                write.writerow(['source URL','found URL','link text','initial response status','X-Redirect-By header', 'redirect chain length', 'destination URL','final response status','notes and exception responses'])
 
         combinedPageLookups = matchPagesWithFoundUrls(allPageStatus, foundUrlsLookup)
         cliPrint("ALL PAGES FOUND WITH STATUS")
@@ -41,7 +42,7 @@ def getLinksStatus():
         print("no supported flags provided—try --help or -h for usage.")
 
 parser = argparse.ArgumentParser(
-    "quick-seo-audit"
+    "seo-tools"
 )
 
 general = parser.add_argument_group("general output")
@@ -155,7 +156,38 @@ def searchForHyperlinksOnPage(pageUrl, allPageStatus=[], foundUrlsLookup=[], alr
     except:
         parser.exit(1, message="error: failed to request referenced page: "+pageUrl)
     pageSoup = BeautifulSoup(r.text, "html.parser")
-    links = pageSoup.find_all('a', {"href" : re.compile(r"http.+")})
+    rawLinks = pageSoup.find_all('a')
+    cleanedLinks = []
+    for a in rawLinks:
+        if a.has_attr('href'):
+            cleanedLinks.append(a)
+    links = []
+    for i in cleanedLinks:
+        telMailtoStatus = re.match('(tel.+|mailto.+)', i['href'])
+        if telMailtoStatus:
+            pass
+        else:
+            urlParts = urlsplit(i['href'])
+            #cliPrint(i['href'])
+            #cliPrint("scheme: "+urlParts.scheme)
+            #cliPrint("netloc: "+urlParts.netloc)
+            if urlParts.scheme != "" and urlParts.netloc != "":
+                links.append(i)
+            else:
+                cliPrint("found incomplete href \""+i['href']+"\" on page: "+r.url)
+                if urlParts.scheme == "":
+                    prependHttps = "https://"+i['href']
+                    #cliPrint("Attempting to prepend https: "+prependHttps)
+                    urlParts = urlsplit(prependHttps)
+                    #cliPrint("scheme: "+urlParts.scheme)
+                    #cliPrint("netloc: "+urlParts.netloc)
+
+                    if urlParts.netloc == "" or urlParts.netloc == "." or urlParts.netloc == "..":
+                        i['href'] = urljoin(r.url, i['href'])
+                    else:
+                        i['href'] = urlunsplit(urlParts)
+                cliPrint("created found url: "+i['href'])
+                links.append(i)
     links.append({'href':pageUrl})
     for i in links:
         try:
@@ -177,10 +209,18 @@ def checkHyperlinkUrl(foundUrl):
             historyStatus = r.history[0].status_code
         except:
             historyStatus = r.status_code
-        linkInfo = [foundUrl, historyStatus, r.url, r.status_code]
+        try:
+            xRedirectBy = r.history[0].headers['X-Redirect-By']
+        except:
+            try:
+                test = r.history[0]
+                xRedirectBy = "no X-Redirect-By header"
+            except:
+                xRedirectBy = "--"
+        linkInfo = [foundUrl, historyStatus, xRedirectBy, len(r.history), r.url, r.status_code]
     except Exception as inst:
         print("\n\n\nERROR: exception in found URL request\n\n\n")
-        linkInfo = [foundUrl,"EXCEPTION","--","--",str(inst)]
+        linkInfo = [foundUrl,"EXCEPTION","--","--","--","EXCEPTION",str(inst)]
     cliPrint(linkInfo)
     return linkInfo
 
