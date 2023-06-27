@@ -14,8 +14,7 @@ classifiers = [
 dependencies = [
     "requests",
     "bs4",
-    "lxml",
-    "validators"
+    "lxml"
     ]
 
 [project.scripts]
