@@ -168,24 +168,20 @@ def searchForHyperlinksOnPage(pageUrl, allPageStatus=[], foundUrlsLookup=[], alr
             pass
         else:
             urlParts = urlsplit(i['href'])
-            #cliPrint(i['href'])
-            #cliPrint("scheme: "+urlParts.scheme)
-            #cliPrint("netloc: "+urlParts.netloc)
             if urlParts.scheme != "" and urlParts.netloc != "":
                 links.append(i)
             else:
                 cliPrint("found incomplete href \""+i['href']+"\" on page: "+r.url)
                 if urlParts.scheme == "":
                     prependHttps = "https://"+i['href']
-                    #cliPrint("Attempting to prepend https: "+prependHttps)
                     urlParts = urlsplit(prependHttps)
-                    #cliPrint("scheme: "+urlParts.scheme)
-                    #cliPrint("netloc: "+urlParts.netloc)
 
                     if urlParts.netloc == "" or urlParts.netloc == "." or urlParts.netloc == "..":
                         i['href'] = urljoin(r.url, i['href'])
                     else:
                         i['href'] = urlunsplit(urlParts)
+                elif urlParts.netloc == "":
+                    cliPrint("found incomplete href \""+i['href']+"\" but will test anyway. Found on page: "+r.url)
                 cliPrint("created found url: "+i['href'])
                 links.append(i)
     links.append({'href':pageUrl})
