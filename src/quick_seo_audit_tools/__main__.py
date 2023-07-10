@@ -27,7 +27,7 @@ def getLinksStatus():
         if args.output_csv is not False:
             with open(args.output_csv, 'w') as f:
                 write = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator='\n')
-                write.writerow(['source URL','found URL','link text','initial response status','X-Redirect-By header', 'redirect chain length', 'destination URL','final response status','notes and exception responses'])
+                write.writerow(['source URL','found URL','link text','initial response status','X-Redirect-By header', 'redirect chain length', 'destination URL','final response status','final response content type','notes and exception responses'])
 
         combinedPageLookups = matchPagesWithFoundUrls(allPageStatus, foundUrlsLookup)
         cliPrint("ALL PAGES FOUND WITH STATUS")
@@ -50,7 +50,7 @@ general.add_argument(
     "-q",
     "--quiet",
     action="store_true",
-    help="supress response text"
+    help="suppress response text"
 )
 
 subparsers = parser.add_subparsers(
@@ -153,49 +153,49 @@ def parseSitemapsAndPagesFromSitemap(sitemap, allSitemaps=[], allPages=[]):
 def searchForHyperlinksOnPage(pageUrl, allPageStatus=[], foundUrlsLookup=[], alreadyAuditedPages=[]):
     try:
         r = appRequestGet(pageUrl)
-    except:
-        parser.exit(1, message="error: failed to request referenced page: "+pageUrl)
-    pageSoup = BeautifulSoup(r.text, "html.parser")
-    rawLinks = pageSoup.find_all('a')
-    cleanedLinks = []
-    for a in rawLinks:
-        if a.has_attr('href'):
-            cleanedLinks.append(a)
-    links = []
-    for i in cleanedLinks:
-        telMailtoStatus = re.match('(tel.+|mailto.+)', i['href'])
-        if telMailtoStatus:
-            pass
-        else:
-            urlParts = urlsplit(i['href'])
-            if urlParts.scheme != "" and urlParts.netloc != "":
-                links.append(i)
+        pageSoup = BeautifulSoup(r.text, "html.parser")
+        rawLinks = pageSoup.find_all('a')
+        cleanedLinks = []
+        for a in rawLinks:
+            if a.has_attr('href'):
+                cleanedLinks.append(a)
+        links = []
+        for i in cleanedLinks:
+            telMailtoStatus = re.match('(tel.+|mailto.+)', i['href'])
+            if telMailtoStatus:
+                pass
             else:
-                cliPrint("found incomplete href \""+i['href']+"\" on page: "+r.url)
-                if urlParts.scheme == "":
-                    prependHttps = "https://"+i['href']
-                    urlParts = urlsplit(prependHttps)
+                urlParts = urlsplit(i['href'])
+                if urlParts.scheme != "" and urlParts.netloc != "":
+                    links.append(i)
+                else:
+                    cliPrint("found incomplete href \""+i['href']+"\" on page: "+r.url)
+                    if urlParts.scheme == "":
+                        prependHttps = "https://"+i['href']
+                        urlParts = urlsplit(prependHttps)
 
-                    if urlParts.netloc == "" or urlParts.netloc == "." or urlParts.netloc == "..":
-                        i['href'] = urljoin(r.url, i['href'])
-                    else:
-                        i['href'] = urlunsplit(urlParts)
-                elif urlParts.netloc == "":
-                    cliPrint("found incomplete href \""+i['href']+"\" but will test anyway. Found on page: "+r.url)
-                cliPrint("created found url: "+i['href'])
-                links.append(i)
-    links.append({'href':pageUrl})
-    for i in links:
-        try:
-            linkText = i.text.strip()
-        except:
-            linkText = "no link text found"
-        foundUrlsLookup.append([pageUrl, i['href'], linkText])
-        if i['href'] in alreadyAuditedPages:
-            cliPrint("already found this URL: "+i['href'])
-        else:
-            allPageStatus.append(checkHyperlinkUrl(i['href']))
-            alreadyAuditedPages.append(i['href'])
+                        if urlParts.netloc == "" or urlParts.netloc == "." or urlParts.netloc == "..":
+                            i['href'] = urljoin(r.url, i['href'])
+                        else:
+                            i['href'] = urlunsplit(urlParts)
+                    elif urlParts.netloc == "":
+                        cliPrint("found incomplete href \""+i['href']+"\" but will test anyway. Found on page: "+r.url)
+                    cliPrint("created found url: "+i['href'])
+                    links.append(i)
+        links.append({'href':pageUrl})
+        for i in links:
+            try:
+                linkText = i.text.strip()
+            except:
+                linkText = "no link text found"
+            foundUrlsLookup.append([pageUrl, i['href'], linkText])
+            if i['href'] in alreadyAuditedPages:
+                cliPrint("already found this URL: "+i['href'])
+            else:
+                allPageStatus.append(checkHyperlinkUrl(i['href']))
+                alreadyAuditedPages.append(i['href'])
+    except:
+        print("error: failed to complete search for hyperlinks on page -- "+pageUrl) 
     return allPageStatus, foundUrlsLookup, alreadyAuditedPages
 
 def checkHyperlinkUrl(foundUrl):
@@ -206,6 +206,10 @@ def checkHyperlinkUrl(foundUrl):
         except:
             historyStatus = r.status_code
         try:
+            contentType = r.headers['Content-Type']
+        except:
+            contentType = "unknown"
+        try:
             xRedirectBy = r.history[0].headers['X-Redirect-By']
         except:
             try:
@@ -213,10 +217,12 @@ def checkHyperlinkUrl(foundUrl):
                 xRedirectBy = "no X-Redirect-By header"
             except:
                 xRedirectBy = "--"
-        linkInfo = [foundUrl, historyStatus, xRedirectBy, len(r.history), r.url, r.status_code]
+        linkInfo = [foundUrl, historyStatus, xRedirectBy, len(r.history), r.url, r.status_code, contentType]
     except Exception as inst:
-        print("\n\n\nERROR: exception in found URL request\n\n\n")
-        linkInfo = [foundUrl,"EXCEPTION","--","--","--","EXCEPTION",str(inst)]
+        cliPrint("\n\n\n")
+        print("error: exception in found URL request -- "+foundUrl)
+        cliPrint("\n\n\n")
+        linkInfo = [foundUrl,"EXCEPTION","--","--","--","EXCEPTION","--",str(inst)]
     cliPrint(linkInfo)
     return linkInfo
 
