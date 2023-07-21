@@ -1,6 +1,6 @@
 [project]
 name = "quick-seo-audit-tools"
-version = "0.0.3-beta"
+version = "0.0.4"
 authors = [
   { name="Geoff Lambeth", email="geoff.lambeth@geofflambeth.com" },
 ]
