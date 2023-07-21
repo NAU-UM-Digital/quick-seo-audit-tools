@@ -188,7 +188,14 @@ def searchForHyperlinksOnPage(pageUrl, allPageStatus=[], foundUrlsLookup=[], alr
                 linkText = i.text.strip()
             except:
                 linkText = "no link text found"
-            foundUrlsLookup.append([pageUrl, i['href'], linkText])
+            try:
+                if i.attrs['target'] == "_blank":
+                    opensNewTab = "opens in new tab"
+                else:
+                    opensNewTab = ""
+            except:
+                opensNewTab = ""
+            foundUrlsLookup.append([pageUrl, i['href'], linkText, opensNewTab])
             if i['href'] in alreadyAuditedPages:
                 cliPrint("already found this URL: "+i['href'])
             else:
