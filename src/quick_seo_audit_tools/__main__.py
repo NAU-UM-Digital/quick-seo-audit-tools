@@ -109,7 +109,7 @@ linksStatus_parser.add_argument(
 
 linksStatus_parser.set_defaults(func=getLinksStatus)
 
-markdownScrape_parser = subparsers.add_parser("markdown-scrape", help="[ALPHA] scrape pages from sitemap and output markdown")
+markdownScrape_parser = subparsers.add_parser("sitemap-scrape", help="[ALPHA] scrape copy from pages listed in sitemap")
 markdownScrape_parser.add_argument(
     "--xml-index",
     action="store",
@@ -122,7 +122,17 @@ markdownScrape_parser.add_argument(
     action="store",
     metavar="FILE",
     help="relative folder path for markdown output",
-    default='scrape_markdown/'
+    default='sitemap_scrape/'
+)
+markdownScrape_parser.add_argument(
+    "--keep-html",
+    action="store_true",
+    help="save response html to file"
+)
+markdownScrape_parser.add_argument(
+    "--no-markdown",
+    action="store_true",
+    help="suppress markdown convert/export"
 )
 
 markdownScrape_parser.set_defaults(func=sitemapScrapeToMarkdown)
@@ -288,21 +298,34 @@ def matchPagesWithFoundUrls(urlStatuses, lookupUrls):
                 urlLookup.extend(foundPageStatus[1:])
     return lookupUrls
 
+def check_create_directory(dir, verbose=True):
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+        if verbose is True:
+            cliPrint("Directory "+dir+" Created ")
+    else:    
+        if verbose is True:
+            cliPrint("Directory "+dir+" already exists")
+
+
 def scrape_convert_writefile(URL, outputPath="scrape_output/", getBodyClass=True):
 
     scrapeDataDestination = outputPath+"_scrape-data/"
-    if not os.path.exists(scrapeDataDestination):
-        os.makedirs(scrapeDataDestination)
-        cliPrint("Directory "+scrapeDataDestination+" Created ")
-    #else:    
-        #cliPrint("Directory "+scrapeDataDestination+" already exists")
-
+    check_create_directory(scrapeDataDestination, verbose=False)
 
     page = requests.get(URL)
     contentSoup = BeautifulSoup(page.content, "html.parser")
 
-    path = str(URL[:-1].replace("https://", outputPath)+".md")
-    cliPrint("LOCAL PATH: "+path)
+    markdownPath = str(URL[:-1].replace("https://", outputPath+"markdown/")+".md")
+    cliPrint("LOCAL PATH: "+markdownPath)
+
+    if args.keep_html is True:
+        htmlPath = str(URL[:-1].replace("https://", outputPath+"html/")+".html")
+        htmlDir = htmlPath.rsplit('/', 1)[0]
+        check_create_directory(htmlDir)
+        logTextResponse = open(htmlPath, "w")
+        logTextResponse.write(page.text)
+        logTextResponse.close()
 
     try:
         title = str(contentSoup.find("title"))
@@ -466,10 +489,14 @@ def scrape_convert_writefile(URL, outputPath="scrape_output/", getBodyClass=True
     log.write(URL+","+canonicalURL+",GOOD BODY\n")
     log.close()
 
-
-    pandocInput = pandoc.read(html, format="html")
-    pandocOutput = pandoc.write(pandocInput, format="markdown_strict-raw_html+simple_tables+yaml_metadata_block", options=["--wrap=none", "-s"], file=path)
-    return pandocOutput
+    if args.no_markdown is not True:
+        markdownDir = markdownPath.rsplit('/', 1)[0]
+        check_create_directory(markdownDir)
+        pandocInput = pandoc.read(html, format="html")
+        pandocOutput = pandoc.write(pandocInput, format="markdown_strict-raw_html+simple_tables+yaml_metadata_block", options=["--wrap=none", "-s"], file=markdownPath)
+        return pandocOutput
+    else:
+        return True
 
 def main_cli():
     if args.debug is True:

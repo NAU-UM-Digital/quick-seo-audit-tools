@@ -19,7 +19,7 @@ dependencies = [
     ]
 
 [project.scripts]
-seo-tools = "quick_seo_audit_tools.__main__:main_cli"
+seo-tools = "quick_seo_audit_tools.main:main_cli"
 
 [build-system]
 requires = ["hatchling"]
