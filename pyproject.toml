@@ -2,7 +2,7 @@
 name = "quick-seo-audit-tools"
 version = "0.0.3-beta"
 authors = [
-  { name="Geoff Lambeth", email="geoffrey.lambeth@geofflambeth.com" },
+  { name="Geoff Lambeth", email="geoff.lambeth@geofflambeth.com" },
 ]
 description = "CLI tools to quickly collect data and help audit webpages with tedious SEO tasks in mind."
 readme = "README.md"
@@ -14,7 +14,8 @@ classifiers = [
 dependencies = [
     "requests",
     "bs4",
-    "lxml"
+    "lxml",
+    "pandoc"
     ]
 
 [project.scripts]
