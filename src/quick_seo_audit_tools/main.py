@@ -49,7 +49,7 @@ def sitemapScrapeToMarkdown():
     if args.xml_index is not False:
         print("beginning sitemap parse...")
         allSitemaps, allPages = parseInputSitemap(args.xml_index)
-        print("sitemap parse complete, scraping pages to markdown...")
+        print("sitemap parse complete, scraping pages to file...")
 
         if args.output_folder[-1] != "/":
             scrape_output_folder = args.output_folder+"/"

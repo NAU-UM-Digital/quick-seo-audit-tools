@@ -25,24 +25,34 @@ def scrapeExtensionReturnsHTML(contentSoup, title, canonicalURL, description, te
     
     try:
         statsBlocks = [
-            contentSoup.findAll("div", {"class": "triplet-stat"}),
-            contentSoup.findAll("div", {"class": "left-right-stat"})
+            contentSoup.find_all("div", {"data-repository": True})
         ]
         for statsBlockSelector in statsBlocks:
             try:
                 for i in statsBlockSelector:
                     try:
-                        logIdentifier = "stat"
+                        logIdentifier = i['class']
                         statContent = i.find("div", {"class": "content"})
                         try:
                             statRepoId = 'https://in.nau.edu/repository/wp-admin/post.php?post=' + \
                                 i['data-repository'] + '&action=edit'
-                            try:
-                                statData = requests.get(
-                                    'https://in.nau.edu/repository/wp-json/content-repo/v1/content/statistic/id/'+i['data-repository'])
-                                data = json.loads(statData.content)
-                                statRepoPostStatus = data[0]["post_status"]
-                            except:
+                            def requestNauRepoItem(repoType, repoId):
+                                    try:
+                                        tryUrl = 'https://in.nau.edu/repository/wp-json/content-repo/v1/content/'+repoType+'/'+repoId+'/'
+                                        repoData = requests.get(tryUrl)
+                                        data = json.loads(repoData.content)
+                                        repoPostStatus = data[0]["post_status"]
+                                        return repoPostStatus
+                                    except:
+                                        return False
+                            repoTypesToTry = ['statistic', 'testimonial', 'blurb']
+                            statRepoPostStatus = False
+                            repoIter = 0
+                            while (statRepoPostStatus is False and repoIter < len(repoTypesToTry)):
+                                statRepoPostStatus = requestNauRepoItem(repoTypesToTry[repoIter], i['data-repository'])
+                                if statRepoPostStatus is False:
+                                    repoIter =+ 1
+                            if statRepoPostStatus is False:
                                 statRepoPostStatus = "COULD NOT FIND REPO POST STATUS"
                         except:
                             statRepoId = "COULD NOT FIND REPO ID"
