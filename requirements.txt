@@ -1,0 +1,17 @@
+beautifulsoup4==4.12.3
+bs4==0.0.2
+build==1.0.3
+certifi==2024.2.2
+charset-normalizer==3.3.2
+idna==3.6
+lxml==5.1.0
+packaging==23.2
+pandoc==2.3
+plumbum==1.8.2
+ply==3.11
+pyproject_hooks==1.0.0
+requests==2.31.0
+setuptools==69.0.3
+soupsieve==2.5
+urllib3==2.2.0
+wheel==0.42.0
