@@ -8,6 +8,9 @@ When creating, auditing, and QA-ing web content with accessibility, user experie
 
 To help fill this gap, Quick SEO Audit Tools provides an extendable base to quickly audit copy, links, and other important site elements from the command line.
 
+## .devcontainer spec
+
+Uses the standard devcontainer spec to create a consistent development environment. If you'd prefer to install the dependencies mnually, I'd recommend checking out the .devcontainer folder as a reference to make sure you have the proper dependencies installed.
 
 ## Building and installing the package
 
