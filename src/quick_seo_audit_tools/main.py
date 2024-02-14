@@ -208,10 +208,25 @@ def parseSitemapsAndPagesFromSitemap(sitemap, allSitemaps=[], allPages=[]):
 
     return allSitemaps, allPages
 
-def searchForHyperlinksOnPage(pageUrl, allPageStatus=[], foundUrlsLookup=[], alreadyAuditedPages=[]):
+def searchForHyperlinksOnPage(pageUrl, allPageStatus=[], foundUrlsLookup=[], alreadyAuditedPages=[], decomposeSelectors=['div.bread-crumb-container', 'div#top-nav-wrapper', 'div.breadcrumb', 'div#left-nav-wrapper', 'div#program-of-interest-mobile']):
     try:
         r = appRequestGet(pageUrl)
         pageSoup = BeautifulSoup(r.text, "html.parser")
+        if decomposeSelectors != False:
+            tagsToRemove = [pageSoup.select(i) for i in decomposeSelectors]
+            try:
+                for foundAll in tagsToRemove:
+                    try:
+                        for tag in foundAll:
+                            try:
+                                tag.decompose()
+                            except:
+                                pass
+                    except:
+                        pass
+            except:
+                pass
+
         rawLinks = pageSoup.find_all('a')
         cleanedLinks = []
         for a in rawLinks:
