@@ -204,7 +204,7 @@ def parseSitemapsAndPagesFromSitemap(sitemap, allSitemaps=[], allPages=[]):
         cliPrint("recommended: check referenced sitemaps for text/xml content-type headers")
         cliPrint("sitemap request headers on error:")
         cliPrint(r.headers, False)
-        parser.exit(1, message="error: referenced sitemap did not return xml\n")
+        print("error: referenced sitemap did not return xml \n\n\n\n\n")
 
     return allSitemaps, allPages
 
