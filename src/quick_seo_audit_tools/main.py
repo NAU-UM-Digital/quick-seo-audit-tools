@@ -184,7 +184,7 @@ def parseInputSitemap(inputXml):
 
 def parseSitemapsAndPagesFromSitemap(sitemap, allSitemaps=[], allPages=[]):
     try:
-        r = requests.get(sitemap)
+        r = requests.get(sitemap, stream=True)
     except:
         parser.exit(1, message="error: failed to request a referenced sitemap")
     if "xml" in r.headers.get('content-type'):
@@ -206,59 +206,64 @@ def parseSitemapsAndPagesFromSitemap(sitemap, allSitemaps=[], allPages=[]):
         cliPrint(r.headers, False)
         print("error: referenced sitemap did not return xml \n\n\n\n\n")
 
+    r.close()
+
     return allSitemaps, allPages
 
 def searchForHyperlinksOnPage(pageUrl, allPageStatus=[], foundUrlsLookup=[], alreadyAuditedPages=[]):
     try:
-        r = appRequestGet(pageUrl)
-        pageSoup = BeautifulSoup(r.text, "html.parser")
-        rawLinks = pageSoup.find_all('a')
-        cleanedLinks = []
-        for a in rawLinks:
-            if a.has_attr('href'):
-                cleanedLinks.append(a)
-        links = []
-        for i in cleanedLinks:
-            telMailtoStatus = re.match('(tel.+|mailto.+)', i['href'])
-            if telMailtoStatus:
-                pass
-            else:
-                urlParts = urlsplit(i['href'])
-                if urlParts.scheme != "" and urlParts.netloc != "":
-                    links.append(i)
-                else:
-                    cliPrint("found incomplete href \""+i['href']+"\" on page: "+r.url)
-                    if urlParts.scheme == "":
-                        prependHttps = "https://"+i['href']
-                        urlParts = urlsplit(prependHttps)
-
-                        if urlParts.netloc == "" or urlParts.netloc == "." or urlParts.netloc == "..":
-                            i['href'] = urljoin(r.url, i['href'])
+        with appRequestGet(pageUrl) as r:
+            if 'text/html' in r.headers.get('Content-Type'):
+                pageSoup = BeautifulSoup(r.text, "html.parser")
+                rawLinks = pageSoup.find_all('a')
+                cleanedLinks = []
+                for a in rawLinks:
+                    if a.has_attr('href'):
+                        cleanedLinks.append(a)
+                links = []
+                for i in cleanedLinks:
+                    telMailtoStatus = re.match('(tel.+|mailto.+)', i['href'])
+                    if telMailtoStatus:
+                        pass
+                    else:
+                        urlParts = urlsplit(i['href'])
+                        if urlParts.scheme != "" and urlParts.netloc != "":
+                            links.append(i)
                         else:
-                            i['href'] = urlunsplit(urlParts)
-                    elif urlParts.netloc == "":
-                        cliPrint("found incomplete href \""+i['href']+"\" but will test anyway. Found on page: "+r.url)
-                    cliPrint("created found url: "+i['href'])
-                    links.append(i)
-        links.append({'href':pageUrl})
-        for i in links:
-            try:
-                linkText = i.text.strip()
-            except:
-                linkText = "no link text found"
-            try:
-                if i.attrs['target'] == "_blank":
-                    opensNewTab = "opens in new tab"
-                else:
-                    opensNewTab = ""
-            except:
-                opensNewTab = ""
-            foundUrlsLookup.append([pageUrl, i['href'], linkText, opensNewTab])
-            if i['href'] in alreadyAuditedPages:
-                cliPrint("already found this URL: "+i['href'])
+                            cliPrint("found incomplete href \""+i['href']+"\" on page: "+r.url)
+                            if urlParts.scheme == "":
+                                prependHttps = "https://"+i['href']
+                                urlParts = urlsplit(prependHttps)
+
+                                if urlParts.netloc == "" or urlParts.netloc == "." or urlParts.netloc == "..":
+                                    i['href'] = urljoin(r.url, i['href'])
+                                else:
+                                    i['href'] = urlunsplit(urlParts)
+                            elif urlParts.netloc == "":
+                                cliPrint("found incomplete href \""+i['href']+"\" but will test anyway. Found on page: "+r.url)
+                            cliPrint("created found url: "+i['href'])
+                            links.append(i)
+                links.append({'href':pageUrl})
+                for i in links:
+                    try:
+                        linkText = i.text.strip()
+                    except:
+                        linkText = "no link text found"
+                    try:
+                        if i.attrs['target'] == "_blank":
+                            opensNewTab = "opens in new tab"
+                        else:
+                            opensNewTab = ""
+                    except:
+                        opensNewTab = ""
+                    foundUrlsLookup.append([pageUrl, i['href'], linkText, opensNewTab])
+                    if i['href'] in alreadyAuditedPages:
+                        cliPrint("already found this URL: "+i['href'])
+                    else:
+                        allPageStatus.append(checkHyperlinkUrl(i['href']))
+                        alreadyAuditedPages.append(i['href'])
             else:
-                allPageStatus.append(checkHyperlinkUrl(i['href']))
-                alreadyAuditedPages.append(i['href'])
+                cliPrint(f'{r.url} does not have text/html content type')
     except:
         print("error: failed to complete search for hyperlinks on page -- "+pageUrl) 
     return allPageStatus, foundUrlsLookup, alreadyAuditedPages
