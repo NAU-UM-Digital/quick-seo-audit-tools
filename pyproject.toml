@@ -16,7 +16,8 @@ dependencies = [
     "bs4",
     "lxml",
     "pandoc",
-    "sqlalchemy"
+    "sqlalchemy",
+    "matplotlib"
     ]
 
 [project.scripts]

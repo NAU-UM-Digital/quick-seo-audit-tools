@@ -33,6 +33,8 @@ def handle_url(url, contains=False):
                 return parse_html(r)
         elif r.status_code != 200:
             return handle_error(f'status code: {r.status_code}') #COME BACK TO THIS WE STILL NEED TO HANDLE ERRORS
+        else:
+            return [] 
 
 def parse_sitemap(request): 
     sitemap_queue = []
@@ -63,7 +65,6 @@ def parse_html(request):
                 urlDefragd = urldefrag(url).url
                 db.add_link_to_db(request.url, urlDefragd, link.text.strip())
                 links_queue.append(urlDefragd)
-                print(urlDefragd)
     return links_queue
 
 def handle_error(error):

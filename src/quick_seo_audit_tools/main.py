@@ -29,15 +29,26 @@ def getLinksStatus():
 
         iter = 0
         while iter < len(queue):
+            print(f'handling found URL {iter}/{len(queue)}')
             links = lsf.handle_url(queue[iter], contains=args.contains)
 
             if len(links) > 0:
                 for i in links:
                     if i not in queue:
+                        print(f'found new URL: {i}')
                         queue.append(i) 
+                    else:
+                        print(f'found already known URL: {i}')
             iter += 1
 
-        db.list_link_data_join()
+        db.create_link_graph()
+        links_status_data = db.list_link_data_join()
+        if args.output_csv is not False:
+            with open(args.output_csv, 'w') as f:
+                writer = csv.DictWriter(f, fieldnames=list(links_status_data[0].keys()))
+                writer.writeheader()
+                for row in links_status_data:
+                    writer.writerow(row)
         print(f'scrape complete')
 #        allSitemaps, allPages = parseInputSitemap(args.xml_index)
 #        print("sitemap parse complete, searching for links...")
