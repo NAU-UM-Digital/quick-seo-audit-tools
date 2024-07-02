@@ -9,6 +9,8 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 import os
 import json
 import pandoc
+import quick_seo_audit_tools.functions.links_status_functions as lsf
+import quick_seo_audit_tools.functions.database as db
 
 def testAppRequestGet():
     global args
@@ -16,31 +18,50 @@ def testAppRequestGet():
 
 def getLinksStatus():
     global args
+    queue = []
+    link_log = []
+
     if args.xml_index is not False:
         print("beginning sitemap parse...")
-        allSitemaps, allPages = parseInputSitemap(args.xml_index)
-        print("sitemap parse complete, searching for links...")
-        allPageStatus = []
-        foundUrlsLookup = []
-        alreadyAuditedPages = []
-        for i in allPages:
-            allPageStatus, foundUrlsLookup, alreadyAuditedPages = searchForHyperlinksOnPage(i, allPageStatus, foundUrlsLookup, alreadyAuditedPages)
-        print("links search complete, logging to file...\n\n")
+        # add starting sitemap to queue
+        queue.append(args.xml_index)
+        print(f'appended {args.xml_index} to queue...')
 
-        if args.output_csv is not False:
-            with open(args.output_csv, 'w') as f:
-                write = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator='\n')
-                write.writerow(['source URL','found URL','link text','opens in new tab?','initial response status','X-Redirect-By header', 'redirect chain length', 'destination URL','final response status','final response content type','notes and exception responses'])
+        iter = 0
+        while iter < len(queue):
+            links = lsf.handle_url(queue[iter], contains=args.contains)
 
-        combinedPageLookups = matchPagesWithFoundUrls(allPageStatus, foundUrlsLookup)
-        cliPrint("ALL PAGES FOUND WITH STATUS")
-        for page in combinedPageLookups:
-            cliPrint(page)
-            if args.output_csv is not False:
-                with open(args.output_csv, 'a') as f:
-                    write = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator='\n')
-                    write.writerow(page)
+            if len(links) > 0:
+                for i in links:
+                    if i not in queue:
+                        queue.append(i) 
+            iter += 1
 
+        db.list_link_data_join()
+        print(f'scrape complete')
+#        allSitemaps, allPages = parseInputSitemap(args.xml_index)
+#        print("sitemap parse complete, searching for links...")
+#        allPageStatus = []
+#        foundUrlsLookup = []
+#        alreadyAuditedPages = []
+#        for i in allPages:
+#            allPageStatus, foundUrlsLookup, alreadyAuditedPages = searchForHyperlinksOnPage(i, allPageStatus, foundUrlsLookup, alreadyAuditedPages)
+#        print("links search complete, logging to file...\n\n")
+#
+#        if args.output_csv is not False:
+#            with open(args.output_csv, 'w') as f:
+#                write = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator='\n')
+#                write.writerow(['source URL','found URL','link text','opens in new tab?','initial response status','X-Redirect-By header', 'redirect chain length', 'destination URL','final response status','final response content type','notes and exception responses'])
+#
+#        combinedPageLookups = matchPagesWithFoundUrls(allPageStatus, foundUrlsLookup)
+#        cliPrint("ALL PAGES FOUND WITH STATUS")
+#        for page in combinedPageLookups:
+#            cliPrint(page)
+#            if args.output_csv is not False:
+#                with open(args.output_csv, 'a') as f:
+#                    write = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator='\n')
+#                    write.writerow(page)
+#
     else:
         print("no supported flags provided—try --help or -h for usage.")
 
@@ -104,7 +125,14 @@ linksStatus_parser.add_argument(
     action="store",
     metavar="FILE",
     help="relative filepath for csv output",
-    default='False'
+    default=False
+)
+linksStatus_parser.add_argument(
+    "--contains",
+    action="store",
+    metavar="STRING",
+    help="contains filter to limit parsing page for links",
+    default=False
 )
 
 linksStatus_parser.set_defaults(func=getLinksStatus)
@@ -301,6 +329,7 @@ def matchPagesWithFoundUrls(urlStatuses, lookupUrls):
         for foundPageStatus in urlStatuses:
             if foundPageStatus[0] == urlLookup[1]:
                 urlLookup.extend(foundPageStatus[1:])
+        
     return lookupUrls
 
 def check_create_directory(dir, verbose=True):
@@ -397,5 +426,6 @@ def main_cli():
     else:
         try:
             args.func()
-        except:
-            print("try asking for --help")
+        except Exception as err:
+            print(f"Unexpected {err=}, {type(err)=}")
+            raise
