@@ -11,6 +11,7 @@ import json
 import pandoc
 import quick_seo_audit_tools.functions.links_status_functions as lsf
 import quick_seo_audit_tools.functions.database as db
+from datetime import datetime
 
 def testAppRequestGet():
     global args
@@ -43,8 +44,10 @@ def getLinksStatus():
 
         db.create_link_graph()
         links_status_data = db.list_link_data_join()
-        if args.output_csv is not False:
-            with open(args.output_csv, 'w') as f:
+        if args.output is not False:
+            if not os.path.exists(args.output):
+                os.makedirs(args.output)
+            with open(f'{args.output}/Links-Status_{datetime.today().strftime('%Y-%m-%d')}.csv', 'w') as f:
                 writer = csv.DictWriter(f, fieldnames=list(links_status_data[0].keys()))
                 writer.writeheader()
                 for row in links_status_data:
@@ -59,8 +62,8 @@ def getLinksStatus():
 #            allPageStatus, foundUrlsLookup, alreadyAuditedPages = searchForHyperlinksOnPage(i, allPageStatus, foundUrlsLookup, alreadyAuditedPages)
 #        print("links search complete, logging to file...\n\n")
 #
-#        if args.output_csv is not False:
-#            with open(args.output_csv, 'w') as f:
+#        if args.output is not False:
+#            with open(args.output, 'w') as f:
 #                write = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator='\n')
 #                write.writerow(['source URL','found URL','link text','opens in new tab?','initial response status','X-Redirect-By header', 'redirect chain length', 'destination URL','final response status','final response content type','notes and exception responses'])
 #
@@ -68,8 +71,8 @@ def getLinksStatus():
 #        cliPrint("ALL PAGES FOUND WITH STATUS")
 #        for page in combinedPageLookups:
 #            cliPrint(page)
-#            if args.output_csv is not False:
-#                with open(args.output_csv, 'a') as f:
+#            if args.output is not False:
+#                with open(args.output, 'a') as f:
 #                    write = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator='\n')
 #                    write.writerow(page)
 #
@@ -132,9 +135,9 @@ linksStatus_parser.add_argument(
     default=False
 )
 linksStatus_parser.add_argument(
-    "--output-csv",
+    "--output",
     action="store",
-    metavar="FILE",
+    metavar="FOLDER",
     help="relative filepath for csv output",
     default=False
 )

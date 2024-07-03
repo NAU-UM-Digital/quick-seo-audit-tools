@@ -103,21 +103,19 @@ def list_all_requests():
 def list_link_data_join():
     with Session(engine) as session:
         stmt = (
-            select(Link, Request, NetworkCentrality)
+            select(Link, Request)
             .join_from(Link, Request, Link.linked_url == Request.request_url)
-            .join_from(Request, NetworkCentrality, Request.resolved_url == NetworkCentrality.resolved_url)
         )
         print(stmt)
 
         data_join = [{
             'source URL': row.Link.source_url,
-            'destination URL': row.Request.resolved_url,
             'on-page linked URL': row.Link.linked_url,
+            'destination URL': row.Request.resolved_url,
             'on-page link text': row.Link.link_text,
             'final status code': row.Request.status_code,
             'first status code': row.Request.initial_status_code,
-            'number of redirects': row.Request.no_of_redirects,
-            'destination centrality in network': row.NetworkCentrality.network_value
+            'number of redirects': row.Request.no_of_redirects
         } for row in session.execute(stmt)]
         return data_join
 
