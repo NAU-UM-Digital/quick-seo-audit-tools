@@ -19,7 +19,9 @@ dependencies = [
     "pandoc",
     "sqlalchemy",
     "matplotlib",
-    "networkx"
+    "networkx",
+    "gravis",
+    "scipy"
     ]
 
 [project.scripts]

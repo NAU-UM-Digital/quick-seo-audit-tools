@@ -10,6 +10,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 import quick_seo_audit_tools.functions.network_graph as network_graph
+import sqlite3
+import argparse
 
 class  Base(DeclarativeBase):
     pass
@@ -49,8 +51,34 @@ class NetworkCentrality(Base):
     def __repr__(self) -> str:
         return f"NetworkCentrality(id={self.id!r}, resolved_url={self.resolved_url!r}, network_value={self.network_value!r})" 
 
-engine = create_engine("sqlite://", echo=False)
-Base.metadata.create_all(engine)
+class NodeInDegree(Base):
+    __tablename__ = "node_in_degree"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    resolved_url: Mapped[str]
+    network_value: Mapped[int]
+
+    def __repr__(self) -> str:
+        return f"NodeInDegree(id={self.id!r}, resolved_url={self.resolved_url!r}, network_value={self.network_value!r})" 
+
+
+class PageRank(Base):
+    __tablename__ = "page_rank"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    resolved_url: Mapped[str]
+    network_value: Mapped[int]
+
+    def __repr__(self) -> str:
+        return f"PageRank(id={self.id!r}, resolved_url={self.resolved_url!r}, network_value={self.network_value!r})" 
+
+def init_output_db(path):
+    global engine
+    global Base
+
+    output_db_path = f'/{path}'
+    engine = create_engine(f"sqlite://{output_db_path}", echo=False)
+    Base.metadata.create_all(engine)
 
 def create_db_session():
     engine = create_engine("sqlite://", echo=True)
@@ -122,16 +150,20 @@ def list_link_data_join():
 def list_network_analysis_values():
     with Session(engine) as session:
         stmt = (
-            select(NetworkCentrality)
+            select(NetworkCentrality, PageRank, NodeInDegree)
+            .join_from(NetworkCentrality, PageRank, NetworkCentrality.resolved_url == PageRank.resolved_url)
+            .join_from(NetworkCentrality, NodeInDegree, NetworkCentrality.resolved_url == NodeInDegree.resolved_url)
         )
         print(stmt)
         data_join = [{
             'url': row.NetworkCentrality.resolved_url,
-            'centrality in network': row.NetworkCentrality.network_value
+            'pages linking to URL': row.NodeInDegree.network_value,
+            'centrality in network': row.NetworkCentrality.network_value,
+            'pagerank in network': row.PageRank.network_value,
         } for row in session.execute(stmt)]
         return data_join
 
-def create_link_graph():
+def create_link_graph(output_file=False):
     with Session(engine) as session:
         stmt = (
             select(Link, Request)
@@ -140,6 +172,12 @@ def create_link_graph():
         edges = [(row.Link.source_url, row.Request.resolved_url) for row in session.execute(stmt)]
         H = network_graph.create_graph_from_edge_list(edges)
         print(network_graph.degree_centrality_analysis(H))
+        for key, value in network_graph.pagerank_analysis(H).items():
+            print(f'{key}: pagerank of {value}')
+            add_network_analysis_values(PageRank, key, value) 
         for key, value in network_graph.degree_centrality_analysis(H).items():
             print(f'{key}: centrality of {value}')
             add_network_analysis_values(NetworkCentrality, key, value)
+        for tuple in network_graph.no_edges_per_node(H):
+            add_network_analysis_values(NodeInDegree, tuple[0], tuple[1])
+        network_graph.return_gravis_graph(H, output_file=output_file)

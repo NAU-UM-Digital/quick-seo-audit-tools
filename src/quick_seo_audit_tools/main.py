@@ -19,6 +19,15 @@ def testAppRequestGet():
 
 def getLinksStatus():
     global args
+
+    if not os.path.exists(args.output):
+        os.makedirs(args.output)
+
+    db_path = f'{args.output}/{datetime.today().strftime('%Y-%m-%d')}_crawl-database.db'
+    if os.path.exists(db_path):
+        os.remove(db_path)
+    db.init_output_db(db_path)
+
     queue = []
     link_log = []
 
@@ -42,12 +51,10 @@ def getLinksStatus():
                         print(f'found already known URL: {i}')
             iter += 1
 
-        db.create_link_graph()
+        db.create_link_graph(f'{args.output}/Network-Visualization_{datetime.today().strftime('%Y-%m-%d')}.html')
         links_status_data = db.list_link_data_join()
         network_analysis_data = db.list_network_analysis_values()
         if args.output is not False:
-            if not os.path.exists(args.output):
-                os.makedirs(args.output)
             with open(f'{args.output}/Links-Status_{datetime.today().strftime('%Y-%m-%d')}.csv', 'w') as f:
                 writer = csv.DictWriter(f, fieldnames=list(links_status_data[0].keys()))
                 writer.writeheader()
