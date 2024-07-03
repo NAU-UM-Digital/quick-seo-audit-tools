@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from lxml import etree
-from urllib.parse import urlparse, urldefrag
+from urllib.parse import urlparse, urldefrag, urljoin
 import quick_seo_audit_tools.functions.database as db
 
 def handle_url(url, contains=False):
@@ -21,6 +21,10 @@ def handle_url(url, contains=False):
             no_of_redirects = len(r.history),
             content_type_header = r.headers.get('Content-Type')
         )
+
+        #if redirected, pass URL back to queue to avoid duplicating links
+        if len(r.history) > 0:
+            return [r.url]
 
         print(f'status code: {r.status_code}')
         if 'text/xml' in r.headers.get('Content-Type')  and 'sitemap' in r.url and r.status_code == 200:
@@ -59,7 +63,8 @@ def parse_html(request):
     links_soup = soup.find_all('a')
     for link in links_soup:
         if link.has_attr('href'):
-            url = link['href']
+            href = link['href']
+            url = urljoin(request.url, href)
             urlParsed = urlparse(url)
             if (urlParsed.scheme == 'http' or urlParsed.scheme == 'https'):
                 urlDefragd = urldefrag(url).url
