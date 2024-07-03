@@ -12,12 +12,14 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
+    "setuptools",
     "requests",
     "bs4",
     "lxml",
     "pandoc",
     "sqlalchemy",
-    "matplotlib"
+    "matplotlib",
+    "networkx"
     ]
 
 [project.scripts]
