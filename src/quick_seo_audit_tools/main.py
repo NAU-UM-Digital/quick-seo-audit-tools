@@ -22,11 +22,11 @@ def getLinksStatus():
     queue = []
     link_log = []
 
-    if args.xml_index is not False:
+    if args.seed_url is not False:
         print("beginning sitemap parse...")
         # add starting sitemap to queue
-        queue.append(args.xml_index)
-        print(f'appended {args.xml_index} to queue...')
+        queue.append(args.seed_url)
+        print(f'appended {args.seed_url} to queue...')
 
         iter = 0
         while iter < len(queue):
@@ -44,6 +44,7 @@ def getLinksStatus():
 
         db.create_link_graph()
         links_status_data = db.list_link_data_join()
+        network_analysis_data = db.list_network_analysis_values()
         if args.output is not False:
             if not os.path.exists(args.output):
                 os.makedirs(args.output)
@@ -52,8 +53,13 @@ def getLinksStatus():
                 writer.writeheader()
                 for row in links_status_data:
                     writer.writerow(row)
+            with open(f'{args.output}/Network-Analysis_{datetime.today().strftime('%Y-%m-%d')}.csv', 'w') as f:
+                writer = csv.DictWriter(f, fieldnames=list(network_analysis_data[0].keys()))
+                writer.writeheader()
+                for row in network_analysis_data:
+                    writer.writerow(row)
         print(f'scrape complete')
-#        allSitemaps, allPages = parseInputSitemap(args.xml_index)
+#        allSitemaps, allPages = parseInputSitemap(args.seed_url)
 #        print("sitemap parse complete, searching for links...")
 #        allPageStatus = []
 #        foundUrlsLookup = []
@@ -81,9 +87,9 @@ def getLinksStatus():
 
 def sitemapScrapeToMarkdown():
     global args
-    if args.xml_index is not False:
+    if args.seed_url is not False:
         print("beginning sitemap parse...")
-        allSitemaps, allPages = parseInputSitemap(args.xml_index)
+        allSitemaps, allPages = parseInputSitemap(args.seed_url)
         print("sitemap parse complete, scraping pages to file...")
 
         if args.output_folder[-1] != "/":
@@ -128,7 +134,7 @@ requestHeaders_parser.set_defaults(func=testAppRequestGet)
 
 linksStatus_parser = subparsers.add_parser("links-status", help="[PROD] process on-page hyperlinks for response status")
 linksStatus_parser.add_argument(
-    "--xml-index",
+    "--seed-url",
     action="store",
     metavar="URL",
     help="destination URL returns xml index of pages or other xml indexes",

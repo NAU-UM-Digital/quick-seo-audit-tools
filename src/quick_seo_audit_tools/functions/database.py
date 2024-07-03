@@ -119,6 +119,18 @@ def list_link_data_join():
         } for row in session.execute(stmt)]
         return data_join
 
+def list_network_analysis_values():
+    with Session(engine) as session:
+        stmt = (
+            select(NetworkCentrality)
+        )
+        print(stmt)
+        data_join = [{
+            'url': row.NetworkCentrality.resolved_url,
+            'centrality in network': row.NetworkCentrality.network_value
+        } for row in session.execute(stmt)]
+        return data_join
+
 def create_link_graph():
     with Session(engine) as session:
         stmt = (
