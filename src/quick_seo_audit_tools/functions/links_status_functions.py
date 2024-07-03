@@ -1,13 +1,36 @@
 import requests
 from bs4 import BeautifulSoup
 from lxml import etree
+import urllib3
 from urllib.parse import urlparse, urldefrag, urljoin
 import quick_seo_audit_tools.functions.database as db
+import ssl
+
+# custom adapter to allow legacy SSL renegotiation—does make crawl vulnerable to man-in-the-middle attacks
+class CustomHttpAdapter (requests.adapters.HTTPAdapter):
+    # "Transport adapter" that allows us to use custom ssl_context.
+
+    def __init__(self, ssl_context=None, **kwargs):
+        self.ssl_context = ssl_context
+        super().__init__(**kwargs)
+
+    def init_poolmanager(self, connections, maxsize, block=False):
+        self.poolmanager = urllib3.poolmanager.PoolManager(
+            num_pools=connections, maxsize=maxsize,
+            block=block, ssl_context=self.ssl_context)
+
+def get_legacy_session():
+    ctx = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+    ctx.options |= 0x4  # OP_LEGACY_SERVER_CONNECT
+    session = requests.session()
+    session.mount('https://', CustomHttpAdapter(ctx))
+    return session
+
 
 def handle_url(url, contains=False):
 
     print(f'handling URL: {url}')
-    with requests.get(url, stream=True, timeout=5) as r:
+    with get_legacy_session().get(url, stream=True, timeout=5) as r:
 
         if len(r.history) > 0:
             initial_status_code = r.history[0].status_code
