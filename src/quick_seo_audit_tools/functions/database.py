@@ -33,10 +33,10 @@ class Request(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     request_url: Mapped[str]
     resolved_url: Mapped[str]
-    status_code: Mapped[int]
-    initial_status_code: Mapped[int]
-    no_of_redirects: Mapped[int]
-    content_type_header: Mapped[str]
+    status_code: Mapped[Optional[int]]
+    initial_status_code: Mapped[Optional[int]]
+    no_of_redirects: Mapped[Optional[int]]
+    content_type_header: Mapped[Optional[str]]
 
     def __repr__(self) -> str:
         return f"Request(id={self.id!r}, request_url={self.request_url!r}, resolved_url={self.resolved_url!r})"
