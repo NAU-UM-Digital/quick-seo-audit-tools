@@ -51,10 +51,13 @@ def getLinksStatus():
                         print(f'found already known URL: {i}')
             iter += 1
 
-        db.create_link_graph(f'{args.output}/Network-Visualization_{datetime.today().strftime('%Y-%m-%d')}.html')
+        network_visualization_path = f'{args.output}/Network-Visualization_{datetime.today().strftime('%Y-%m-%d')}.html'
+        if os.path.exists(network_visualization_path):
+            os.remove(network_visualization_path)
+        db.create_link_graph(network_visualization_path)
         links_status_data = db.list_link_data_join()
         network_analysis_data = db.list_network_analysis_values()
-        if args.output is not False:
+        if args.output is not False and len(links_status_data) > 0:
             with open(f'{args.output}/Links-Status_{datetime.today().strftime('%Y-%m-%d')}.csv', 'w') as f:
                 writer = csv.DictWriter(f, fieldnames=list(links_status_data[0].keys()))
                 writer.writeheader()
@@ -65,7 +68,7 @@ def getLinksStatus():
                 writer.writeheader()
                 for row in network_analysis_data:
                     writer.writerow(row)
-        print(f'scrape complete')
+        print(f'scrape complete: crawled {len(links_status_data)} links and {len(queue)} unique URLs')
 #        allSitemaps, allPages = parseInputSitemap(args.seed_url)
 #        print("sitemap parse complete, searching for links...")
 #        allPageStatus = []
