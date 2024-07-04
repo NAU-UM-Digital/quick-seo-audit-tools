@@ -27,41 +27,55 @@ def get_legacy_session():
     return session
 
 
-def handle_url(url, contains=False):
+def handle_url(url, contains=False, self_link=False):
 
     print(f'handling URL: {url}')
-    with get_legacy_session().get(url, stream=True, timeout=5) as r:
-
-        if len(r.history) > 0:
-            initial_status_code = r.history[0].status_code
-        else:
-            initial_status_code = r.status_code
+    try:
+        r = get_legacy_session().get(url, stream=True, timeout=5)
+    except:
         db.add_request_to_db( 
             request_url = url,
-            resolved_url = r.url,
-            status_code = r.status_code,
-            initial_status_code = initial_status_code,
-            no_of_redirects = len(r.history),
-            content_type_header = r.headers.get('Content-Type')
+            resolved_url = url,
+            status_code = 'ERROR',
+            initial_status_code = 'ERROR',
+            no_of_redirects = 'N/A',
+            content_type_header = 'N/A'
         )
+        print(f'\n\n\n\nERROR\n\n')
+        return []
+    else:
+        with r:
 
-        #if redirected, pass URL back to queue to avoid duplicating links
-        if len(r.history) > 0:
-            return [r.url]
-
-        print(f'status code: {r.status_code}')
-        if 'text/xml' in r.headers.get('Content-Type')  and 'sitemap' in r.url and r.status_code == 200:
-            print(f'attempting to parse sitemap: {r.url}')
-            return parse_sitemap(r)
-        elif 'text/html' in r.headers.get('Content-Type') and r.status_code == 200:
-            if ( contains is not False and contains not in r.url):
-                return []
+            if len(r.history) > 0:
+                initial_status_code = r.history[0].status_code
             else:
-                return parse_html(r)
-        elif r.status_code != 200:
-            return handle_error(f'status code: {r.status_code}') #COME BACK TO THIS WE STILL NEED TO HANDLE ERRORS
-        else:
-            return [] 
+                initial_status_code = r.status_code
+            db.add_request_to_db( 
+                request_url = url,
+                resolved_url = r.url,
+                status_code = r.status_code,
+                initial_status_code = initial_status_code,
+                no_of_redirects = len(r.history),
+                content_type_header = r.headers.get('Content-Type')
+            )
+
+            #if redirected, pass URL back to queue to avoid duplicating links
+            if len(r.history) > 0:
+                return [r.url]
+
+            print(f'status code: {r.status_code}')
+            if r.headers.get('Content-Type') and 'xml' in r.headers.get('Content-Type')  and 'sitemap' in r.url and r.status_code == 200:
+                print(f'attempting to parse sitemap: {r.url}')
+                return parse_sitemap(r)
+            elif r.headers.get('Content-Type') and 'html' in r.headers.get('Content-Type') and r.status_code == 200:
+                if ( contains is not False and contains not in r.url):
+                    return []
+                else:
+                    return parse_html(r, self_link=self_link)
+            elif r.status_code != 200:
+                return handle_error(f'status code: {r.status_code}') #COME BACK TO THIS WE STILL NEED TO HANDLE ERRORS
+            else:
+                return [] 
 
 def parse_sitemap(request): 
     sitemap_queue = []
