@@ -80,7 +80,7 @@ def parse_sitemap(request):
 
     return sitemap_queue
 
-def parse_html(request):
+def parse_html(request, self_link=False):
     links_queue = []
     
     soup = BeautifulSoup(request.text, 'html.parser')
