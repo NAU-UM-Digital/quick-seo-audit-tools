@@ -41,6 +41,43 @@ class Request(Base):
     def __repr__(self) -> str:
         return f"Request(id={self.id!r}, request_url={self.request_url!r}, resolved_url={self.resolved_url!r})"
 
+class Page(Base):
+    __tablename__ = "unique_url_page"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    resolved_url: Mapped[str]
+    declared_canonical_url: Mapped[Optional[str]]
+    evaluated_canonical_url: Mapped[Optional[str]]
+    page_title: Mapped[Optional[str]]
+    page_title_len: Mapped[Optional[int]]
+    meta_description: Mapped[Optional[str]]
+    meta_description_len: Mapped[Optional[int]]
+    meta_robots: Mapped[Optional[int]]
+    robots_header: Mapped[Optional[int]]
+    heading1: Mapped[Optional[str]]
+    heading2: Mapped[Optional[str]]
+
+    def __repr__(self) -> str:
+        return f"Page(id={self.id!r}, resolved_url={self.resolved_url!r}, page_title={self.page_title!r})"
+
+def add_url_to_page_db(resolved_url, declared_canonical_url=None, evaluated_canonical_url=None, page_title=None, page_title_len=None, meta_description=None, meta_description_len=None, meta_robots=None, robots_header=None, heading1=None, heading2=None):
+    with Session(engine) as session:
+        new_link = Page(
+            resolved_url=resolved_url, 
+            declared_canonical_url=declared_canonical_url,
+            evaluated_canonical_url=evaluated_canonical_url,
+            page_title=page_title,
+            page_title_len=page_title_len,
+            meta_description=meta_description,
+            meta_description_len=meta_description_len,
+            meta_robots=meta_robots,
+            robots_header=robots_header,
+            heading1=heading1,
+            heading2=heading2
+        )
+        session.add_all([new_link])
+        session.commit()
+
 class NetworkCentrality(Base):
     __tablename__ = "network_centrality"
 
@@ -77,7 +114,7 @@ def init_output_db(path):
     global Base
 
     output_db_path = f'/{path}'
-    engine = create_engine(f"sqlite://{output_db_path}", echo=False)
+    engine = create_engine(f"sqlite://{output_db_path}", echo=True)
     Base.metadata.create_all(engine)
 
 def create_db_session():
