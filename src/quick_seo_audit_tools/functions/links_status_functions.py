@@ -160,6 +160,8 @@ def parse_html(request, self_link=False):
                 if request.url != urlDefragd or self_link is True:
                     db.add_link_to_db(request.url, urlDefragd, link.text.strip())
                     links_queue.append(urlDefragd)
+    if return_canonical_url(soup) is not None:
+        links_queue.append(return_canonical_url(soup))
     return links_queue
 
 def handle_error(error):
