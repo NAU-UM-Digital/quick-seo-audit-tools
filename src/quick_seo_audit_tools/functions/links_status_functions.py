@@ -41,6 +41,9 @@ def handle_url(url, contains=False, self_link=False):
             no_of_redirects = 'N/A',
             content_type_header = 'N/A'
         )
+        db.add_url_to_page_db(
+            resolved_url=url
+        )
         print(f'\n\n\n\nERROR\n\n')
         return []
     else:
@@ -94,10 +97,58 @@ def parse_sitemap(request):
 
     return sitemap_queue
 
+def return_title(soup):
+    try:
+        title = soup.find('title').text
+    except:
+        title = None
+    return title
+
+def return_meta_description(soup):
+    try:
+        descr = soup.find('meta', {'name': 'description'})['content']
+    except:
+        descr = None
+    return descr
+
+def return_meta_robots(soup):
+    meta_robots = soup.find_all('meta', {'name': 'robots'})
+    content = [i.get('content') for i in meta_robots]
+    return ','.join(content)
+
+def return_canonical_url(soup):
+    try:
+        canonical = soup.find('link', {'rel': 'canonical'})['href']
+    except:
+        canonical = None
+    return canonical
+
+def return_header(soup, heading_level):
+    try:
+        heading = soup.find(heading_level).text
+    except:
+        heading = None
+    return heading
+
 def parse_html(request, self_link=False):
     links_queue = []
     
     soup = BeautifulSoup(request.text, 'html.parser')
+
+    db.add_url_to_page_db(
+        resolved_url=request.url, 
+        declared_canonical_url=return_canonical_url(soup), 
+        page_title=return_title(soup), 
+        page_title_len=len(return_title(soup)), 
+        meta_description=return_meta_description(soup), 
+        meta_description_len=len(return_meta_description(soup)), 
+        meta_robots=return_meta_robots(soup), 
+        robots_header=request.headers.get('X-Robots-Tag'), 
+        heading1=return_header(soup, 'h1'), 
+        heading2=return_header(soup, 'h2')
+        )
+
+
     links_soup = soup.find_all('a')
     for link in links_soup:
         if link.has_attr('href'):
