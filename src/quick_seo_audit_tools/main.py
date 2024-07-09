@@ -51,7 +51,9 @@ def getLinksStatus():
                         print(f'found already known URL: {i}')
             iter += 1
 
-        network_visualization_path = f'{args.output}/Network-Visualization_{datetime.today().strftime('%Y-%m-%d')}.html'
+        db.parse_canonical_urls()
+
+        network_visualization_path = f'{args.output}/Network-Visualization_{datetime.today().strftime('%Y-%m-%d')}.html'        
         if os.path.exists(network_visualization_path):
             os.remove(network_visualization_path)
         db.create_link_graph(network_visualization_path)

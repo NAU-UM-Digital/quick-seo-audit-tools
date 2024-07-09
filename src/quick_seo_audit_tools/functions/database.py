@@ -2,6 +2,7 @@ from typing import List
 from typing import Optional
 from sqlalchemy import ForeignKey
 from sqlalchemy import String
+from sqlalchemy import func
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
@@ -114,7 +115,7 @@ def init_output_db(path):
     global Base
 
     output_db_path = f'/{path}'
-    engine = create_engine(f"sqlite://{output_db_path}", echo=True)
+    engine = create_engine(f"sqlite://{output_db_path}", echo=False)
     Base.metadata.create_all(engine)
 
 def create_db_session():
@@ -143,6 +144,43 @@ def add_request_to_db(request_url, resolved_url, status_code, initial_status_cod
         )
         session.add_all([new_request])
         session.commit()
+
+def parse_canonical_urls(trust_canonical_tag=False):
+    with Session(engine) as session:
+        stmt = select(Page.declared_canonical_url).distinct()
+        print('\n\n\n parsing canonical URLs....')
+        print(stmt)
+        db_response = session.execute(stmt)
+        canonical_urls = [i.declared_canonical_url for i in db_response]
+        for canonical in canonical_urls:
+            matching_canonicals_stmt = select(Page).where(Page.declared_canonical_url == canonical)
+            matching_canonicals = session.execute(matching_canonicals_stmt).scalars()
+            matched_canonical_stmt = select(Page).where(Page.declared_canonical_url == canonical).limit(1)            
+            matched_canonical = session.execute(matched_canonical_stmt).scalar_one_or_none()
+
+            # ONLY GOOD IF WE TRUST THE CRAWLED CANONICAL URLS
+            if trust_canonical_tag:
+                for i in matching_canonicals:
+                    i.evaluated_canonical_url = i.declared_canonical_url
+                    print(i.evaluated_canonical_url)
+                    print(i in session.dirty)
+                    session.commit()
+            # IF WE DON'T TRUST THE CRAWLED CANONICAL URLS (SHOULD BE DEFAULT)
+            elif matched_canonical is not None:
+                for i in matching_canonicals:
+                    if (i.page_title == matched_canonical.page_title) and (i.heading1 == matched_canonical.heading1):
+                        i.evaluated_canonical_url = i.declared_canonical_url
+                        session.commit()
+                    else:
+                        i.evaluated_canonical_url = i.resolved_url
+                        session.commit()
+
+        no_canonicals_stmt = select(Page).where(Page.declared_canonical_url == None)
+        no_canonicals = session.execute(no_canonicals_stmt).scalars()
+        for i in no_canonicals:
+            i.evaluated_canonical_url = i.resolved_url
+            session.commit()
+        print('\n\n\n')
 
 def add_network_analysis_values(Db, url, value):
     with Session(engine) as session:
@@ -200,13 +238,21 @@ def list_network_analysis_values():
         } for row in session.execute(stmt)]
         return data_join
 
+def check_canonical_value(url):
+    with Session(engine) as session:
+        print(f'checking for canonical URL of {url}...')
+        stmt = select(Page).where(Page.resolved_url == url)
+        print(stmt)
+        data = session.execute(stmt).scalar_one_or_none()
+        return data.evaluated_canonical_url if data else url
+    
 def create_link_graph(output_file=False):
     with Session(engine) as session:
         stmt = (
             select(Link, Request)
             .join_from(Link, Request, Link.linked_url == Request.request_url)
         )
-        edges = [(row.Link.source_url, row.Request.resolved_url) for row in session.execute(stmt)]
+        edges = [(check_canonical_value(row.Link.source_url), check_canonical_value(row.Request.resolved_url)) for row in session.execute(stmt)]
         H = network_graph.create_graph_from_edge_list(edges)
         print(network_graph.degree_centrality_analysis(H))
         for key, value in network_graph.pagerank_analysis(H).items():
