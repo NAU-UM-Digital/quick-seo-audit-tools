@@ -61,7 +61,7 @@ def assign_hover_node_id(graph):
 
 def return_gravis_graph(G, output_file=False):
     # Centrality calculation
-    centrality = nx.algorithms.degree_centrality(G)
+    centrality = nx.algorithms.pagerank(G)
 
     # Community detection
     communities = nx.algorithms.community.greedy_modularity_communities(G, best_n=5)
