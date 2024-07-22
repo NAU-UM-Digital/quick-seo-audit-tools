@@ -130,6 +130,12 @@ def return_header(soup, heading_level):
         heading = None
     return heading
 
+def safe_len(list):
+    try:
+        return len(list)
+    except:
+        return 0
+
 def parse_html(request, self_link=False):
     links_queue = []
     
@@ -139,9 +145,9 @@ def parse_html(request, self_link=False):
         resolved_url=request.url, 
         declared_canonical_url=return_canonical_url(soup), 
         page_title=return_title(soup), 
-        page_title_len=len(return_title(soup)), 
+        page_title_len=safe_len(return_title(soup)), 
         meta_description=return_meta_description(soup), 
-        meta_description_len=len(return_meta_description(soup)), 
+        meta_description_len=safe_len(return_meta_description(soup)), 
         meta_robots=return_meta_robots(soup), 
         robots_header=request.headers.get('X-Robots-Tag'), 
         heading1=return_header(soup, 'h1'), 

@@ -203,6 +203,44 @@ def list_all_requests():
         for test in session.scalars(stmt):
             print(test)
 
+def list_distinct_requests():
+    with Session(engine) as session:
+        stmt = select(Request.resolved_url).distinct()
+        data = session.execute(stmt).scalars()
+        return data
+
+def show_page_data(url):
+    with Session(engine) as session:
+        stmt = select(Page).where(Page.resolved_url == url)
+        data = session.execute(stmt).scalar_one_or_none()
+        return data
+
+def return_ranked_in_links(url):
+    with Session(engine) as session:
+        
+        stmt = (
+            select(Page.page_title, Page.evaluated_canonical_url, PageRank.network_value)
+            .join_from(Page, Request, Page.resolved_url == Request.resolved_url)
+            .join_from(Request, Link, Request.request_url == Link.source_url)
+            .join_from(Request, PageRank, Request.resolved_url == PageRank.resolved_url)
+            .where(Link.linked_url == url)
+            .order_by(PageRank.network_value.desc())
+            .distinct()
+        )
+        print(stmt)
+        data = session.execute(stmt).fetchall()
+        return data
+    
+def return_canonicalized_urls(url):
+    with Session(engine) as session:
+        stmt = (
+            select(Page.resolved_url)
+            .where(Page.evaluated_canonical_url == url)
+            .distinct()
+        )
+        data = session.execute(stmt).fetchall()
+        return data
+
 def list_link_data_join():
     with Session(engine) as session:
         stmt = (
