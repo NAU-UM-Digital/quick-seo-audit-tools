@@ -3,7 +3,7 @@ FROM debian:trixie
 
 # Install a few base packages 
 RUN apt-get -y update && apt-get -y upgrade
-RUN apt-get -y install curl wget buildessential libreadline-dev unzip git zsh gcc
+RUN apt-get -y install curl wget build-essential ripgrep libreadline-dev unzip git zsh gcc
 
 # Install neovim for an editor
 RUN curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
@@ -15,17 +15,12 @@ RUN ln -s /squashfs-root/AppRun /usr/bin/nvim
 # Install lua itself
 RUN curl -R -O https://www.lua.org/ftp/lua-5.3.5.tar.gz
 RUN tar -zxf lua-5.3.5.tar.gz
-RUN cd lua-5.3.5
-RUN make linux test
-RUN make install
+RUN cd lua-5.3.5 && make linux test && make install
 
 # Install luarocks pkg manager for neovim
 RUN curl -R -O http://luarocks.github.io/luarocks/releases/luarocks-3.11.1.tar.gz
 RUN tar -zxf luarocks-3.11.1.tar.gz
-RUN cd luarocks-3.11.1
-RUN ./configure --with-lua-include=/usr/local/include
-RUN make
-RUN make install
+RUN cd luarocks-3.11.1 && ./configure --with-lua-include=/usr/local/include && make && make install
 
 # Install common languages I want to use
 RUN apt-get -y install python3-venv
