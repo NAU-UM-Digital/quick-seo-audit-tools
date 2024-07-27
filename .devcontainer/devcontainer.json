@@ -7,7 +7,10 @@
 			"packages": "pandoc"
 		}
 	},
-	"postCreateCommand": "python3 -m venv .venv && source .venv/bin/activate &&  pip3 install -r requirements.txt"
+	"postCreateCommand": "python3 -m venv .venv && source .venv/bin/activate &&  pip3 install -r requirements.txt",
+	"forwardPorts": {
+		'8080'
+	}
 
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
