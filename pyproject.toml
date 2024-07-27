@@ -1,5 +1,5 @@
 [project]
-name = "quick-seo-audit-tools"
+name = "quick_seo_audit_tools"
 version = "0.0.5"
 authors = [
   { name="Geoff Lambeth", email="geoff.lambeth@geofflambeth.com" },
@@ -21,7 +21,8 @@ dependencies = [
     "matplotlib",
     "networkx",
     "gravis",
-    "scipy"
+    "scipy",
+    "flask"
     ]
 
 [project.scripts]
