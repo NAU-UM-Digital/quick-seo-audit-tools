@@ -14,7 +14,7 @@ db.init_output_db(db_path)
 def hello_world():
     network_analysis_data = db.list_network_analysis_values()
     list = ''.join([f"<li><a href='/inspect-url?url={i}'>{i}</a></li>" for i in db.list_distinct_requests()])
-    return f'<ul>{list}</ul>'
+    return f'<h1>Site exploration dashboard</h1><ul>{list}</ul>'
 
 @app.route("/inspect-url")
 def inspect_url():
