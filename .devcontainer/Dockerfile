@@ -6,7 +6,12 @@ RUN apt-get -y update && apt-get -y upgrade
 RUN apt-get -y install curl git zsh gcc
 
 # Install neovim for an editor
-RUN apt-get -y install neovim
+RUN curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+RUN chmod u+x nvim.appimage
+RUN ./nvim.appimage --appimage-extract
+RUN ./squashfs-root/AppRun --version
+RUN mv squashfs-root /
+RUN ln -s /squashfs-root/AppRun /usr/bin/nvim
 
 # Install common languages I want to use
 RUN apt-get -y install python3-venv
