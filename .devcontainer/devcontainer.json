@@ -9,7 +9,7 @@
 	},
 	"postCreateCommand": "python3 -m venv .venv && source .venv/bin/activate &&  pip3 install -r requirements.txt",
 	"forwardPorts": [
-		8080
+		5000	
 	]
 
 
