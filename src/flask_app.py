@@ -7,7 +7,7 @@ from flask import render_template
 
 
 app = Flask(__name__)
-db_path = f'../test_folder/2024-07-27_crawl-database.db' # REMEMBER TO CHANGE LATER
+db_path = f'../test_folder/2024-07-28_crawl-database.db' # TODO:EXPAND ON DB SELECTION LOGIC 
 db.init_output_db(db_path)
 
 @app.route("/")
