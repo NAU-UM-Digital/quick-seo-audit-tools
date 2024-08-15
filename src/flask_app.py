@@ -13,8 +13,8 @@ db.init_output_db(db_path)
 @app.route("/")
 def hello_world():
     network_analysis_data = db.list_network_analysis_values()
-    list = ''.join([f"<li><a href='/inspect-url?url={i[0]}'>{i[1]} ({i[0]})</a></li>" for i in db.list_distinct_requests()])
-    return f'<h1>Site exploration dashboard</h1><ul>{list}</ul>'
+    list = ''.join([f"<tr><th>{i[1]}</th><th>{i[2]}</th><th><a href='/inspect-url?url={i[0]}'>{i[0]}</a></th><th>{i[3]}</th></tr>" for i in db.list_distinct_requests()])
+    return f'<h1>Site exploration dashboard</h1><table>{list}</table>'
 
 @app.route("/inspect-url")
 def inspect_url():

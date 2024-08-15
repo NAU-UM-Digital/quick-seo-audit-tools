@@ -207,9 +207,10 @@ def list_distinct_requests():
     with Session(engine) as session:
         stmt = (
             # DEPENDENCY: Needs to return resolved URL FIRST
-            select(Request.resolved_url, Page.page_title)
-            .join_from(Request, Page, Request.resolved_url == Page.resolved_url)
+            select(Page.evaluated_canonical_url, Page.page_title, Page.meta_description, PageRank.network_value)
+            .join_from(Page, PageRank, Page.resolved_url == PageRank.resolved_url)
             .distinct()
+            .order_by(PageRank.network_value.desc())
             )
         data = session.execute(stmt).fetchall()
         return data
