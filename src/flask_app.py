@@ -7,18 +7,18 @@ from flask import render_template
 
 
 app = Flask(__name__)
-db_path = f'../test_folder/2024-07-28_crawl-database.db' # TODO:EXPAND ON DB SELECTION LOGIC 
+db_path = f'../test_folder/2024-08-14_crawl-database.db' # TODO:EXPAND ON DB SELECTION LOGIC 
 db.init_output_db(db_path)
 
 @app.route("/")
 def hello_world():
     network_analysis_data = db.list_network_analysis_values()
-    list = ''.join([f"<li><a href='/inspect-url?url={i}'>{i}</a></li>" for i in db.list_distinct_requests()])
+    list = ''.join([f"<li><a href='/inspect-url?url={i[0]}'>{i[1]} ({i[0]})</a></li>" for i in db.list_distinct_requests()])
     return f'<h1>Site exploration dashboard</h1><ul>{list}</ul>'
 
 @app.route("/inspect-url")
 def inspect_url():
-    list = [i for i in db.list_distinct_requests()]
+    list = [i[0] for i in db.list_distinct_requests()]
     url_to_inspect = request.args.get('url', '')
     if url_to_inspect and url_to_inspect in list:
         return render_template('inspect-url.html',
@@ -30,3 +30,7 @@ def inspect_url():
         return "<p>No url was provided.</p>"
     else:
         return "<p>This url does not exist</p>"
+
+@app.route("/new-crawl")
+def new_crawl_form():
+    return f"<p>This hasn't been build yet</p>"

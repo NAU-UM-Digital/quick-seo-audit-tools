@@ -205,8 +205,13 @@ def list_all_requests():
 
 def list_distinct_requests():
     with Session(engine) as session:
-        stmt = select(Request.resolved_url).distinct()
-        data = session.execute(stmt).scalars()
+        stmt = (
+            # DEPENDENCY: Needs to return resolved URL FIRST
+            select(Request.resolved_url, Page.page_title)
+            .join_from(Request, Page, Request.resolved_url == Page.resolved_url)
+            .distinct()
+            )
+        data = session.execute(stmt).fetchall()
         return data
 
 def show_page_data(url):
