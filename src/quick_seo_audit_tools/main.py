@@ -23,7 +23,7 @@ def getLinksStatus():
     if not os.path.exists(args.output):
         os.makedirs(args.output)
 
-    db_path = f'{args.output}/{datetime.today().strftime('%Y-%m-%d')}_crawl-database.db'
+    db_path = f'{args.output}/{datetime.today().strftime("%Y-%m-%d")}_crawl-database.db'
     if os.path.exists(db_path):
         os.remove(db_path)
     db.init_output_db(db_path)
@@ -53,19 +53,19 @@ def getLinksStatus():
 
         db.parse_canonical_urls()
 
-        network_visualization_path = f'{args.output}/Network-Visualization_{datetime.today().strftime('%Y-%m-%d')}.html'        
+        network_visualization_path = f'{args.output}/Network-Visualization_{datetime.today().strftime("%Y-%m-%d")}.html'        
         if os.path.exists(network_visualization_path):
             os.remove(network_visualization_path)
         db.create_link_graph(network_visualization_path)
         links_status_data = db.list_link_data_join()
         network_analysis_data = db.list_network_analysis_values()
         if args.output is not False and len(links_status_data) > 0:
-            with open(f'{args.output}/Links-Status_{datetime.today().strftime('%Y-%m-%d')}.csv', 'w') as f:
+            with open(f'{args.output}/Links-Status_{datetime.today().strftime("%Y-%m-%d")}.csv', 'w') as f:
                 writer = csv.DictWriter(f, fieldnames=list(links_status_data[0].keys()))
                 writer.writeheader()
                 for row in links_status_data:
                     writer.writerow(row)
-            with open(f'{args.output}/Network-Analysis_{datetime.today().strftime('%Y-%m-%d')}.csv', 'w') as f:
+            with open(f'{args.output}/Network-Analysis_{datetime.today().strftime("%Y-%m-%d")}.csv', 'w') as f:
                 writer = csv.DictWriter(f, fieldnames=list(network_analysis_data[0].keys()))
                 writer.writeheader()
                 for row in network_analysis_data:

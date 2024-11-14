@@ -28,7 +28,7 @@ def assign_in_links(graph):
         node = graph.nodes[node_id]
         in_links = [f'<li>{u}</li>' for u, v in graph.in_edges(node_id)]
         out_links = [f'<li>{v}</li>' for u, v in graph.out_edges(node_id)]
-        node['label'] = f'<p><strong>In links ({len(in_links)}):</strong></p><ul>{''.join(in_links)}</ul><p><strong>Out links ({len(out_links)}):</strong></p><ul>{''.join(out_links)}</ul>'
+        node['label'] = f"<p><strong>In links ({len(in_links)}):</strong></p><ul>{''.join(in_links)}</ul><p><strong>Out links ({len(out_links)}):</strong></p><ul>{''.join(out_links)}</ul>"
     return graph
 
 def assign_red_few_inlinks(graph):
