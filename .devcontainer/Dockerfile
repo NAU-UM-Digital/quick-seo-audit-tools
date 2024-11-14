@@ -1,9 +1,9 @@
 # Debian dev container base
-FROM debian:trixie
+FROM debian:bookworm
 
 # Install a few base packages 
 RUN apt-get -y update && apt-get -y upgrade
-RUN apt-get -y install curl wget build-essential ripgrep libreadline-dev unzip git zsh gcc
+RUN apt-get -y install sudo curl wget build-essential ripgrep libreadline-dev unzip git zsh gcc
 
 # Install neovim for an editor
 RUN curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
@@ -22,6 +22,10 @@ RUN curl -R -O http://luarocks.github.io/luarocks/releases/luarocks-3.11.1.tar.g
 RUN tar -zxf luarocks-3.11.1.tar.gz
 RUN cd luarocks-3.11.1 && ./configure --with-lua-include=/usr/local/include && make && make install
 
+# Install pandoc 2.19.2
+RUN curl -LO https://github.com/jgm/pandoc/releases/download/2.19.2/pandoc-2.19.2-1-amd64.deb
+RUN dpkg -i pandoc*.deb && rm *.deb
+
 # Install common languages I want to use
 RUN apt-get -y install python3-venv
 
@@ -30,7 +34,7 @@ RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* 
 ENV LANG en_US.utf8
 
 # Set devcontainer user
-RUN useradd -ms /bin/zsh devcontainer && usermod -aG sudo devcontainer
+RUN useradd -ms /bin/zsh devcontainer && usermod -aG root devcontainer
 USER devcontainer
 
 # Install oh-my-zsh
