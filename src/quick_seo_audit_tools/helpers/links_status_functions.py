@@ -3,8 +3,9 @@ from bs4 import BeautifulSoup
 from lxml import etree
 import urllib3
 from urllib.parse import urlparse, urldefrag, urljoin
-import quick_seo_audit_tools.functions.database as db
+from . import database as db
 import ssl
+from .general import *
 
 # custom adapter to allow legacy SSL renegotiation—does make crawl vulnerable to man-in-the-middle attacks
 class CustomHttpAdapter (requests.adapters.HTTPAdapter):
@@ -66,7 +67,7 @@ def handle_url(url, contains=False, self_link=False):
             if len(r.history) > 0:
                 return [r.url]
 
-            print(f'status code: {r.status_code}')
+            cliPrint(f'status code: {r.status_code}')
             if r.headers.get('Content-Type') and 'xml' in r.headers.get('Content-Type')  and 'sitemap' in r.url and r.status_code == 200:
                 print(f'attempting to parse sitemap: {r.url}')
                 return parse_sitemap(r)
@@ -76,14 +77,14 @@ def handle_url(url, contains=False, self_link=False):
                 else:
                     return parse_html(r, self_link=self_link)
             elif r.status_code != 200:
-                return handle_error(f'status code: {r.status_code}') #COME BACK TO THIS WE STILL NEED TO HANDLE ERRORS
+                return handle_error(f'status code: {r.status_code}') #TODO: COME BACK TO THIS WE STILL NEED TO HANDLE ERRORS
             else:
                 return [] 
 
 def parse_sitemap(request): 
     sitemap_queue = []
 
-    print(request.text)
+    cliPrint(request.text)
     sitemapSoup = BeautifulSoup(request.text, 'xml') 
     locsSoup = sitemapSoup.find_all('loc')
     for loc in locsSoup:

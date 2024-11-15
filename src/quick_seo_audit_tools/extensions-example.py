@@ -1,7 +1,7 @@
 import csv
 from bs4 import BeautifulSoup
 import json
-from quick_seo_audit_tools.main import *
+from quick_seo_audit_tools.__main__ import *
 
 def scrapeExtensionReturnsHTML(contentSoup, title, canonicalURL, description, template, scrapeDataDestination):
     try:

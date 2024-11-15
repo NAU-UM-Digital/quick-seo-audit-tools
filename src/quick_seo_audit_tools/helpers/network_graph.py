@@ -1,5 +1,5 @@
 import networkx as nx
-import quick_seo_audit_tools.functions.database as db
+from . import database as db
 import matplotlib.pyplot as plt
 import gravis as gv
 

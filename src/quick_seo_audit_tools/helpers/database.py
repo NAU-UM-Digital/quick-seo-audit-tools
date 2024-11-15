@@ -10,7 +10,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-import quick_seo_audit_tools.functions.network_graph as network_graph
+from . import network_graph
 import sqlite3
 import argparse
 
