@@ -1,8 +1,8 @@
 [project]
 name = "quick_seo_audit_tools"
-version = "0.0.5"
+version = "0.1.0"
 authors = [
-  { name="Geoff Lambeth", email="geoff.lambeth@geofflambeth.com" },
+  { name="Geoffrey Conley", email="seo-tools@geofflambeth.com" },
 ]
 description = "CLI tools to quickly collect data and help audit webpages with tedious SEO tasks in mind."
 readme = "README.md"
