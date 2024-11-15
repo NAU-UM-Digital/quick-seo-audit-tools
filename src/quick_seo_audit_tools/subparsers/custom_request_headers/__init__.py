@@ -1,4 +1,4 @@
-from ..helpers.requests import *
+from ...helpers.requests import *
 
 # add subparser for import to __main__
 def add(subparsers):

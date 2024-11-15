@@ -7,11 +7,11 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 import os
 import json
 import pandoc
-from ..helpers import links_status_functions as lsf
-from ..helpers import database as db
-from ..helpers.general import *
-from ..helpers import globals
-from ..helpers import requests as req
+from ...helpers import links_status_functions as lsf
+from ...helpers import database as db
+from ...helpers.general import *
+from ...helpers import globals
+from ...helpers import requests as req
 from datetime import datetime
 
 # add subparser for import to __main__

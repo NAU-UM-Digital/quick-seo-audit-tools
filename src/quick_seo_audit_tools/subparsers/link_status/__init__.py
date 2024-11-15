@@ -8,9 +8,9 @@ import os
 import json
 import pandoc
 from datetime import datetime
-from ..helpers import links_status_functions as lsf
-from ..helpers import database as db
-from ..helpers.general import cliPrint
+from ...helpers import links_status_functions as lsf
+from ...helpers import database as db
+from ...helpers.general import cliPrint
 
 # add subparser for import to __main__
 def add(subparsers):

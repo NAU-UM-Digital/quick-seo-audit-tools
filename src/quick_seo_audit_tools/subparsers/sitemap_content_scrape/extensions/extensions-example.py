@@ -1,3 +1,4 @@
+# TODO: DETERMINE WHAT TO DO WITH THIS? SHOULD I CONTINUE WITH THE EXTENSIONS IDEA?
 import csv
 from bs4 import BeautifulSoup
 import json
