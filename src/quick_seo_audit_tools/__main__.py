@@ -1,34 +1,9 @@
 import argparse
-#import pkgutil
-import requests
-from bs4 import BeautifulSoup
-import csv
-import re
-import lxml
-from urllib.parse import urljoin, urlsplit, urlunsplit
-import os
-import json
-import pandoc
 from .helpers import globals
-
-## REGISTER SUBPARSERS ##
-# import subparsers and add to array to make available to argparse
-# ensure that the subparser has an add() function that takes the parser as an argument
-
-from .subparsers import links_status
-from .subparsers import custom_request_headers
-from .subparsers import sitemap_content_scrape
-all_subparsers_array = [
-    links_status,
-    sitemap_content_scrape,
-    custom_request_headers,
-]
-
-## END OF SUBPARSER REGISTRATION ##
+from . import subparsers as new_subparsers
 
 # Initialize the argument parser
 def init_args():
-    global all_subparsers_array
 
     parser = argparse.ArgumentParser(
         "seo-tools"
@@ -52,7 +27,7 @@ def init_args():
     subparsers = parser.add_subparsers(
         title="cli tools for SEO auditing"
     )
-    for new_subparser in all_subparsers_array:
+    for new_subparser in new_subparsers.all_subparsers_array:
         new_subparser.add(subparsers)
         
 
