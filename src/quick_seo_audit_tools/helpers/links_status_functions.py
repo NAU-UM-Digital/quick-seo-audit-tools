@@ -172,6 +172,7 @@ def parse_html(request, self_link=False):
     return links_queue
 
 def handle_error(error):
+    #TODO: Determine how best to handle errors when crawling. Some errors are expected, some are not. But I also don't expect the average user would be able to predict while parsing the output.
     print(error)
     return []
     

@@ -23,34 +23,41 @@ def add(subparsers):
         "--seed-url",
         action="store",
         metavar="URL",
-        help="destination URL returns xml index of pages or other xml indexes",
+        help="destination URL: can be HTML or XML that includes links to other URLs",
         default=False
     )
     new_subparser.add_argument(
         "--output",
         action="store",
         metavar="FOLDER",
-        help="relative filepath for csv output",
-        default="."
+        help="relative filepath to contain reports",
+        default=False
     )
     new_subparser.add_argument(
         "--contains",
         action="store",
         metavar="STRING",
-        help="contains filter to limit parsing page for links",
+        help="only URLs matching string will be checked for new links",
         default=False
     )
-    new_subparser.set_defaults(func=getLinksStatus)
+    new_subparser.set_defaults(func=parseArgsGetLinksStatus)
 
     return new_subparser
 
 # parser's function can take args
-def getLinksStatus(args):
+def parseArgsGetLinksStatus(args):
+    for i in [('seed URL', args.seed_url), ('output folder', args.output), ('contains string', args.contains)]:
+        if i[1] is False:
+            exit(f"ERROR: {i[0]} not provided. Please ask for --help")
+    getLinksStatus(args.seed_url, args.output, args.contains)
 
-    if not os.path.exists(args.output):
-        os.makedirs(args.output)
+# main function
+def getLinksStatus(seed_url,output_folder,contains_string):
 
-    db_path = f'{args.output}/{datetime.today().strftime("%Y-%m-%d")}_crawl-database.db'
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    db_path = f'{output_folder}/{datetime.today().strftime("%Y-%m-%d")}_crawl-database.db'
     if os.path.exists(db_path):
         os.remove(db_path)
     db.init_output_db(db_path)
@@ -58,16 +65,16 @@ def getLinksStatus(args):
     queue = []
     link_log = []
 
-    if args.seed_url is not False:
-        print("beginning sitemap parse...")
-        # add starting sitemap to queue
-        queue.append(args.seed_url)
-        cliPrint(f'appended {args.seed_url} to queue...')
+    if seed_url is not False:
+        print("beginning crawl from seed url...")
+        # add seed URL to queue
+        queue.append(seed_url)
+        cliPrint(f'appended {seed_url} to queue...')
 
         iter = 0
         while iter < len(queue):
             print(f'handling found URL {iter}/{len(queue)}')
-            links = lsf.handle_url(queue[iter], contains=args.contains)
+            links = lsf.handle_url(queue[iter], contains=contains_string)
 
             if len(links) > 0:
                 for i in links:
@@ -80,25 +87,25 @@ def getLinksStatus(args):
 
         db.parse_canonical_urls()
 
-        network_visualization_path = f'{args.output}/Network-Visualization_{datetime.today().strftime("%Y-%m-%d")}.html'        
+        network_visualization_path = f'{output_folder}/Network-Visualization_{datetime.today().strftime("%Y-%m-%d")}.html'        
         if os.path.exists(network_visualization_path):
             os.remove(network_visualization_path)
         db.create_link_graph(network_visualization_path)
         links_status_data = db.list_link_data_join()
         network_analysis_data = db.list_network_analysis_values()
-        if args.output is not False and len(links_status_data) > 0:
-            with open(f'{args.output}/Links-Status_{datetime.today().strftime("%Y-%m-%d")}.csv', 'w') as f:
+        if output_folder is not False and len(links_status_data) > 0:
+            with open(f'{output_folder}/Links-Status_{datetime.today().strftime("%Y-%m-%d")}.csv', 'w') as f:
                 writer = csv.DictWriter(f, fieldnames=list(links_status_data[0].keys()))
                 writer.writeheader()
                 for row in links_status_data:
                     writer.writerow(row)
-            with open(f'{args.output}/Network-Analysis_{datetime.today().strftime("%Y-%m-%d")}.csv', 'w') as f:
+            with open(f'{output_folder}/Network-Analysis_{datetime.today().strftime("%Y-%m-%d")}.csv', 'w') as f:
                 writer = csv.DictWriter(f, fieldnames=list(network_analysis_data[0].keys()))
                 writer.writeheader()
                 for row in network_analysis_data:
                     writer.writerow(row)
         print(f'scrape complete: crawled {len(links_status_data)} links and {len(queue)} unique URLs')
-#        allSitemaps, allPages = parseInputSitemap(args.seed_url)
+#        allSitemaps, allPages = parseInputSitemap(seed_url)
 #        print("sitemap parse complete, searching for links...")
 #        allPageStatus = []
 #        foundUrlsLookup = []
@@ -107,8 +114,8 @@ def getLinksStatus(args):
 #            allPageStatus, foundUrlsLookup, alreadyAuditedPages = searchForHyperlinksOnPage(i, allPageStatus, foundUrlsLookup, alreadyAuditedPages)
 #        print("links search complete, logging to file...\n\n")
 #
-#        if args.output is not False:
-#            with open(args.output, 'w') as f:
+#        if output_folder is not False:
+#            with open(output_folder, 'w') as f:
 #                write = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator='\n')
 #                write.writerow(['source URL','found URL','link text','opens in new tab?','initial response status','X-Redirect-By header', 'redirect chain length', 'destination URL','final response status','final response content type','notes and exception responses'])
 #
@@ -116,8 +123,8 @@ def getLinksStatus(args):
 #        cliPrint("ALL PAGES FOUND WITH STATUS")
 #        for page in combinedPageLookups:
 #            cliPrint(page)
-#            if args.output is not False:
-#                with open(args.output, 'a') as f:
+#            if output_folder is not False:
+#                with open(output_folder, 'a') as f:
 #                    write = csv.writer(f, quoting=csv.QUOTE_ALL, lineterminator='\n')
 #                    write.writerow(page)
 #
