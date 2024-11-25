@@ -1,5 +1,5 @@
 [project]
-name = "quick_seo_audit_tools"
+name = "seo_tools"
 version = "0.1.0"
 authors = [
   { name="Geoffrey Conley", email="seo-tools@geofflambeth.com" },
@@ -26,7 +26,7 @@ dependencies = [
     ]
 
 [project.scripts]
-seo-tools = "quick_seo_audit_tools.__main__:main_cli"
+seo-tools = "seo_tools.__main__:main_cli"
 
 [build-system]
 requires = ["setuptools >= 61.0"]

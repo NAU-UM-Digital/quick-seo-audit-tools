@@ -1,4 +1,4 @@
-from .quick_seo_audit_tools.helpers import database as db
+from ..seo_tools.helpers import database as db
 from datetime import datetime
 from flask import Flask
 from flask import request

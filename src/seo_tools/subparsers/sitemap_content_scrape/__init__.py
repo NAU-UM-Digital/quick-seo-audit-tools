@@ -145,16 +145,6 @@ def scrape_convert_writefile(URL, outputPath="scrape_output/", getBodyClass=True
     else:
         template = "" 
 
-    #try:
-    #    from quick_seo_audit_tools.extensions import scrapeExtensionReturnsHTML
-    #    extensionAdded = Truu
-    #except:
-    #    extensionAdded = False
-    #    
-    #if extensionAdded is True:
-    #    html = scrapeExtensionReturnsHTML(contentSoup, title, canonicalURL, description, template, scrapeDataDestination)
-    #
-    #else:
     html = contentSoup
 
     cliPrint("BODY GOOD")
