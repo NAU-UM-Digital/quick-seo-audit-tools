@@ -23,3 +23,7 @@ Uses the standard devcontainer spec to create a consistent development environme
 ### Install
 
 ```pip3 install /path/to/dist/file```
+
+## Development
+
+seo-tools uses relative module imports, so if you want to run changes without building you'll need to use `python3 -m` from within the src directory.

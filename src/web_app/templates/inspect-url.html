@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head> 
+
+    </head>
+    <body>
+        <h1>{{page_data.page_title}}</h1>
+
+        <h2>H1: {{page_data.heading1}}</h2>
+        <p><strong>Meta desription: ({{page_data.meta_description_len}} chars)</strong> {{page_data.meta_description}}</p>
+
+        <h2>Links analysis</h2>
+        <h3>Incoming links</h3>
+        <p><a href="{{page_data.page_url}}">{{page_data.page_title}}</a> is linked from the following pages within the network:</p>
+        <table>
+            {% for row in in_links %}
+            <tr>
+                {% for col in row %}
+                <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+          </table>
+          
+          <p>{{page_data.resolved_url}} is canoncalized on the following discovered URLs:</p>
+          <ul>
+          {% for row in canonicalized_urls %}
+            <li>
+                <a href="{{row[0]}}">{{row[0]}}</a>
+            </li>
+            {% endfor %}
+        </ul>
+
+    </body>
+</html>

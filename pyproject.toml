@@ -1,8 +1,8 @@
 [project]
-name = "quick-seo-audit-tools"
-version = "0.0.5"
+name = "seo_tools"
+version = "0.1.0"
 authors = [
-  { name="Geoff Lambeth", email="geoff.lambeth@geofflambeth.com" },
+  { name="Geoffrey Conley", email="seo-tools@geofflambeth.com" },
 ]
 description = "CLI tools to quickly collect data and help audit webpages with tedious SEO tasks in mind."
 readme = "README.md"
@@ -16,12 +16,18 @@ dependencies = [
     "requests",
     "bs4",
     "lxml",
-    "pandoc"
+    "pandoc",
+    "sqlalchemy",
+    "matplotlib",
+    "networkx",
+    "gravis",
+    "scipy",
+    "flask"
     ]
 
 [project.scripts]
-seo-tools = "quick_seo_audit_tools.main:main_cli"
+seo-tools = "seo_tools.__main__:main_cli"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools >= 70.0.0"]
+build-backend = "setuptools.build_meta"
