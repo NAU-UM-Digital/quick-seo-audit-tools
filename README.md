@@ -1,4 +1,6 @@
-# Quick SEO Audit Tools
+# seo-tools: a CLI for SEO audits
+
+Open source your SEO audits. All Python, easily extended. Supports crawling sites for broken links, network analysis, and content audits. Easily run and automate locally or in any cloud environment that supports python.
 
 ## Summary
 
