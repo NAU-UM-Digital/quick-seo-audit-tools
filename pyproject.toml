@@ -22,7 +22,10 @@ dependencies = [
     "networkx",
     "gravis",
     "scipy",
-    "flask"
+    "flask",
+    "google-auth",
+    "google-auth-oauthlib",
+    "google-api-python-client",
     ]
 
 [project.scripts]
