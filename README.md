@@ -10,6 +10,26 @@ When creating, auditing, and QA-ing web content with accessibility, user experie
 
 To help fill this gap, Quick SEO Audit Tools provides an extendable base to quickly audit copy, links, and other important site elements from the command line.
 
+## Top-level option and flags 
+
+```
+usage: seo-tools [-h] [-q] [--debug] {links-status,gsc-top-queries,sitemap-scrape,custom-headers} ...
+
+options:
+  -h, --help            show this help message and exit
+
+global flags:
+  -q, --quiet           suppress response text
+  --debug               show errors on failure
+
+cli tools for SEO auditing:
+  {links-status,gsc-top-queries,sitemap-scrape,custom-headers}
+    links-status        [REFACTORING IN PROGRESS] process on-page hyperlinks for response status
+    gsc-top-queries     [dev] pull report of top search queries per page
+    sitemap-scrape      [REFACTORING IN PROGRESS] scrape copy from pages listed in sitemap
+    custom-headers      [REFACTORING IN PROGRESS] customize request headers with flags
+```
+
 ## .devcontainer spec
 
 Uses the standard devcontainer spec to create a consistent development environment. If you'd prefer to install the dependencies mnually, I'd recommend checking out the .devcontainer folder as a reference to make sure you have the proper dependencies installed.
