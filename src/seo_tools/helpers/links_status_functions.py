@@ -48,9 +48,7 @@ def handle_url(url, contains=False, self_link=False):
             no_of_redirects = 'N/A',
             content_type_header = 'N/A'
         )
-        db.add_url_to_page_db(
-            resolved_url=url
-        )
+        db.add_record(db.Page(resolved_url=url.url))
         print(f'\n\n\n\nERROR\n\n')
         return []
     else:
@@ -148,7 +146,7 @@ def parse_html(request, self_link=False):
     
     soup = BeautifulSoup(request.text, 'html.parser')
 
-    db.add_url_to_page_db(
+    db.add_record(db.Page(
         resolved_url=request.url, 
         declared_canonical_url=return_canonical_url(soup), 
         page_title=return_title(soup), 
@@ -159,7 +157,7 @@ def parse_html(request, self_link=False):
         robots_header=request.headers.get('X-Robots-Tag'), 
         heading1=return_header(soup, 'h1'), 
         heading2=return_header(soup, 'h2')
-        )
+    ))
 
 
     links_soup = soup.find_all('a')
@@ -171,8 +169,12 @@ def parse_html(request, self_link=False):
             if (urlParsed.scheme == 'http' or urlParsed.scheme == 'https'):
                 urlDefragd = urldefrag(url).url
                 if request.url != urlDefragd or self_link is True:
-                    db.add_link_to_db(request.url, urlDefragd, link.text.strip())
-                    links_queue.append(urlDefragd)
+                    db.add_record(db.Link(
+                        source_url=request.url,
+                        linked_url=url,
+                        link_text=link.text.strip()
+                        ))
+                    links_queue.append(url)
     if return_canonical_url(soup) is not None:
         links_queue.append(return_canonical_url(soup))
     return links_queue
