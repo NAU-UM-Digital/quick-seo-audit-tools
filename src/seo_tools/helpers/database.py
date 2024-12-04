@@ -9,14 +9,26 @@ from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import column_property
 from sqlalchemy import select
 from . import network_graph
 import sqlite3
 import argparse
+from urllib.parse import urldefrag
 
 class  Base(DeclarativeBase):
     pass
 
+def defrag_context_url(field_name="linked_url", return_key="fragment"):
+    def default_funct(context):
+        url_defragged = urldefrag(context.get_current_parameters()[f'{field_name}'])
+        if return_key == "url":
+            return url_defragged.url
+        elif return_key == "fragment":
+            return url_defragged.fragment
+        else:
+            raise ValueError(f"return_key must be one of 'url' or 'fragment'")
+    return default_funct
 class Link(Base):
     __tablename__ = "all_links"
 
@@ -24,6 +36,8 @@ class Link(Base):
     source_url: Mapped[str]
     linked_url: Mapped[str]
     link_text: Mapped[str]
+    linked_url_defragged: Mapped[str] = mapped_column(default=defrag_context_url(field_name="linked_url", return_key="url"))
+    linked_url_fragment: Mapped[str] = mapped_column(default=defrag_context_url(field_name="linked_url", return_key="fragment"))
 
     def __repr__(self) -> str:
         return f"Link(id={self.id!r}, source_url={self.source_url!r}, linked_url={self.linked_url!r})"
