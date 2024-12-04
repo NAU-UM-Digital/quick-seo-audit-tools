@@ -138,7 +138,6 @@ def gsc_top_queries_report(
             "dimensionFilterGroups": [{"filters": filters}], 
         }
 
-        print(f"{gsc_filter}")
         gsc_pages = authenticated_gsc.searchanalytics().query(
             siteUrl = property_string,
             body = gsc_filter
@@ -213,27 +212,3 @@ def check_url_queries(property_string, url, start_date, end_date, authenticated_
             all_queries.append(new_query_data)
         
     return all_queries 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Testing while in development #
-#demo_property = 'https://nau.edu/'
-#demo_content_filters = [
-#    {
-#        'dimension': 'PAGE',
-#        'operator': 'CONTAINS',
-#        'expression': '/online/'
-#    }
-#]
-#gsc_top_queries_report(property_string=demo_property, filters=demo_content_filters)
