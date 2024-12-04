@@ -75,22 +75,9 @@ class Page(Base):
     def __repr__(self) -> str:
         return f"Page(id={self.id!r}, resolved_url={self.resolved_url!r}, page_title={self.page_title!r})"
 
-def add_url_to_page_db(resolved_url, declared_canonical_url=None, evaluated_canonical_url=None, page_title=None, page_title_len=None, meta_description=None, meta_description_len=None, meta_robots=None, robots_header=None, heading1=None, heading2=None):
+def add_record(new_record):
     with Session(engine) as session:
-        new_link = Page(
-            resolved_url=resolved_url, 
-            declared_canonical_url=declared_canonical_url,
-            evaluated_canonical_url=evaluated_canonical_url,
-            page_title=page_title,
-            page_title_len=page_title_len,
-            meta_description=meta_description,
-            meta_description_len=meta_description_len,
-            meta_robots=meta_robots,
-            robots_header=robots_header,
-            heading1=heading1,
-            heading2=heading2
-        )
-        session.add_all([new_link])
+        session.add_all([new_record])
         session.commit()
 
 class NetworkCentrality(Base):
