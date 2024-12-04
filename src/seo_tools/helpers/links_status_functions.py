@@ -34,15 +34,17 @@ def parse_url_string(url):
     
     return urlunparse(parsed)
 
-def handle_url(url, contains=False, self_link=False):
+def handle_url(url_string, contains=False, self_link=False):
 
-    print(f'handling URL: {url}')
+    url = urldefrag(url_string)
+    print(f'handling URL: {url.url}')
+
     try:
-        r = get_legacy_session().get(url, stream=True, timeout=5)
+        r = get_legacy_session().get(url.url, stream=True, timeout=5)
     except:
         db.add_request_to_db( 
-            request_url = url,
-            resolved_url = url,
+            request_url = url.url,
+            resolved_url = url.url,
             status_code = 'ERROR',
             initial_status_code = 'ERROR',
             no_of_redirects = 'N/A',
@@ -59,7 +61,7 @@ def handle_url(url, contains=False, self_link=False):
             else:
                 initial_status_code = r.status_code
             db.add_request_to_db( 
-                request_url = url,
+                request_url = url.url,
                 resolved_url = r.url,
                 status_code = r.status_code,
                 initial_status_code = initial_status_code,
@@ -79,7 +81,7 @@ def handle_url(url, contains=False, self_link=False):
                 if ( contains is not False and contains not in r.url):
                     return []
                 else:
-                    return parse_html(r, self_link=self_link)
+                    return parse_html(r, self_link=self_link, fragment=url.fragment)
             elif r.status_code != 200:
                 return handle_error(f'status code: {r.status_code}') #TODO: COME BACK TO THIS WE STILL NEED TO HANDLE ERRORS
             else:
@@ -141,7 +143,7 @@ def safe_len(list):
     except:
         return 0
 
-def parse_html(request, self_link=False):
+def parse_html(request, self_link=False, fragment=""):
     links_queue = []
     
     soup = BeautifulSoup(request.text, 'html.parser')

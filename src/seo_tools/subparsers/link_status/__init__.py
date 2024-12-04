@@ -74,7 +74,7 @@ def getLinksStatus(seed_url,output_folder,contains_string):
         iter = 0
         while iter < len(queue):
             print(f'handling found URL {iter}/{len(queue)}')
-            links = lsf.handle_url(queue[iter], contains=contains_string)
+            links = lsf.handle_url(queue[iter], contains=contains_string, self_link=True)
 
             if len(links) > 0:
                 for i in links:
