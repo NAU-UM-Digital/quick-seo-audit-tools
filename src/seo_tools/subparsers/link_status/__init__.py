@@ -68,7 +68,7 @@ def getLinksStatus(seed_url,output_folder,contains_string):
     if seed_url is not False:
         print("beginning crawl from seed url...")
         # add seed URL to queue
-        queue.append(seed_url)
+        queue.append(lsf.parse_url_string(seed_url))
         cliPrint(f'appended {seed_url} to queue...')
 
         iter = 0
@@ -78,11 +78,12 @@ def getLinksStatus(seed_url,output_folder,contains_string):
 
             if len(links) > 0:
                 for i in links:
-                    if i not in queue:
-                        cliPrint(f'found new URL: {i}')
-                        queue.append(i) 
+                    url_string = lsf.parse_url_string(i)
+                    if url_string not in queue:
+                        cliPrint(f'found new URL: {url_string}')
+                        queue.append(url_string) 
                     else:
-                        cliPrint(f'found already known URL: {i}')
+                        cliPrint(f'found already known URL: {url_string}')
             iter += 1
 
         db.parse_canonical_urls()

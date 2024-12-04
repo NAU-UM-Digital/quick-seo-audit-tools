@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from lxml import etree
 import urllib3
-from urllib.parse import urlparse, urldefrag, urljoin
+from urllib.parse import urlparse, urlunparse, urldefrag, urljoin
 from . import database as db
 import ssl
 from .general import *
@@ -27,6 +27,12 @@ def get_legacy_session():
     session.mount('https://', CustomHttpAdapter(ctx))
     return session
 
+def parse_url_string(url):
+    parsed = urlparse(url)
+    if parsed.path == '':
+        parsed = parsed._replace(path='/')
+    
+    return urlunparse(parsed)
 
 def handle_url(url, contains=False, self_link=False):
 
