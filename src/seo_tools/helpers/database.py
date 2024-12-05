@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm import column_property
 from sqlalchemy import select
 from . import network_graph
+from .general import parse_url_string
 import sqlite3
 import argparse
 from urllib.parse import urldefrag
@@ -23,7 +24,7 @@ def defrag_context_url(field_name="linked_url", return_key="fragment"):
     def default_funct(context):
         url_defragged = urldefrag(context.get_current_parameters()[f'{field_name}'])
         if return_key == "url":
-            return url_defragged.url
+            return parse_url_string(url_defragged.url)
         elif return_key == "fragment":
             return url_defragged.fragment
         else:
@@ -122,29 +123,6 @@ def init_output_db(path):
 def create_db_session():
     engine = create_engine("sqlite://", echo=True)
     return Session(engine)
-
-def add_link_to_db(source_url, linked_url, link_text):
-    with Session(engine) as session:
-        new_link = Link(
-            source_url=source_url,
-            linked_url=linked_url,
-            link_text=link_text
-        )
-        session.add_all([new_link])
-        session.commit()
-
-def add_request_to_db(request_url, resolved_url, status_code, initial_status_code, no_of_redirects, content_type_header):
-    with Session(engine) as session:
-        new_request = Request(
-            request_url = request_url,
-            resolved_url = resolved_url,
-            status_code = status_code,
-            initial_status_code = initial_status_code,
-            no_of_redirects = no_of_redirects,
-            content_type_header = content_type_header
-        )
-        session.add_all([new_request])
-        session.commit()
 
 def parse_canonical_urls(trust_canonical_tag=False):
     with Session(engine) as session:
@@ -252,7 +230,7 @@ def list_link_data_join():
     with Session(engine) as session:
         stmt = (
             select(Link, Request)
-            .join_from(Link, Request, Link.linked_url == Request.request_url)
+            .join_from(Link, Request, Link.linked_url_defragged == Request.request_url)
         )
         print(stmt)
 
@@ -295,17 +273,20 @@ def create_link_graph(output_file=False):
     with Session(engine) as session:
         stmt = (
             select(Link, Request)
-            .join_from(Link, Request, Link.linked_url == Request.request_url)
+            .join_from(Link, Request, Link.linked_url_defragged == Request.request_url)
         )
         edges = [(check_canonical_value(row.Link.source_url), check_canonical_value(row.Request.resolved_url)) for row in session.execute(stmt)]
         H = network_graph.create_graph_from_edge_list(edges)
         print(network_graph.degree_centrality_analysis(H))
         for key, value in network_graph.pagerank_analysis(H).items():
             print(f'{key}: pagerank of {value}')
-            add_network_analysis_values(PageRank, key, value) 
+            add_record(PageRank(resolved_url=key, network_value=value))
+
         for key, value in network_graph.degree_centrality_analysis(H).items():
             print(f'{key}: centrality of {value}')
-            add_network_analysis_values(NetworkCentrality, key, value)
+            add_record(NetworkCentrality(resolved_url=key, network_value=value))
+
         for tuple in network_graph.no_edges_per_node(H):
-            add_network_analysis_values(NodeInDegree, tuple[0], tuple[1])
+            add_record(NodeInDegree(resolved_url=tuple[0], network_value=tuple[1]))
+
         network_graph.return_gravis_graph(H, output_file=output_file)

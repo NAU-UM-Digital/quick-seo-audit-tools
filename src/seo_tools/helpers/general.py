@@ -1,4 +1,5 @@
 from . import globals
+from urllib.parse import urlparse, urlunparse, urldefrag, urljoin
 
 def cliPrint(input, introDash=True):
 
@@ -8,3 +9,9 @@ def cliPrint(input, introDash=True):
         else:
             print(str(input))
       
+def parse_url_string(url):
+    parsed = urlparse(url)
+    if parsed.path == '':
+        parsed = parsed._replace(path='/')
+    
+    return urldefrag(urlunparse(parsed)).url

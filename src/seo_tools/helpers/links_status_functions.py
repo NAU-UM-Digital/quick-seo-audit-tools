@@ -27,13 +27,6 @@ def get_legacy_session():
     session.mount('https://', CustomHttpAdapter(ctx))
     return session
 
-def parse_url_string(url):
-    parsed = urlparse(url)
-    if parsed.path == '':
-        parsed = parsed._replace(path='/')
-    
-    return urlunparse(parsed)
-
 def handle_url(url_string, contains=False, self_link=False):
 
     url = urldefrag(url_string)
@@ -42,14 +35,14 @@ def handle_url(url_string, contains=False, self_link=False):
     try:
         r = get_legacy_session().get(url.url, stream=True, timeout=5)
     except:
-        db.add_request_to_db( 
+        db.add_record(db.Request( 
             request_url = url.url,
             resolved_url = url.url,
             status_code = 'ERROR',
             initial_status_code = 'ERROR',
             no_of_redirects = 'N/A',
             content_type_header = 'N/A'
-        )
+        ))
         db.add_record(db.Page(resolved_url=url.url))
         print(f'\n\n\n\nERROR\n\n')
         return []
@@ -60,14 +53,14 @@ def handle_url(url_string, contains=False, self_link=False):
                 initial_status_code = r.history[0].status_code
             else:
                 initial_status_code = r.status_code
-            db.add_request_to_db( 
+            db.add_record(db.Request(
                 request_url = url.url,
                 resolved_url = r.url,
                 status_code = r.status_code,
                 initial_status_code = initial_status_code,
                 no_of_redirects = len(r.history),
                 content_type_header = r.headers.get('Content-Type')
-            )
+            ))
 
             #if redirected, pass URL back to queue to avoid duplicating links
             if len(r.history) > 0:
@@ -99,7 +92,6 @@ def parse_sitemap(request):
         if (urlParsed.scheme == 'http' or urlParsed.scheme == 'https'):
             urlDefragd = urldefrag(url).url
             if request.url != urlDefragd:
-                #db.add_link_to_db(request.url, urlDefragd, 'N/A')
                 sitemap_queue.append(urlDefragd)
 
     return sitemap_queue

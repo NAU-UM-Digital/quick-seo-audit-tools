@@ -10,7 +10,7 @@ import pandoc
 from datetime import datetime
 from ...helpers import links_status_functions as lsf
 from ...helpers import database as db
-from ...helpers.general import cliPrint
+from ...helpers.general import cliPrint, parse_url_string
 
 # add subparser for import to __main__
 def add(subparsers):
@@ -68,7 +68,7 @@ def getLinksStatus(seed_url,output_folder,contains_string):
     if seed_url is not False:
         print("beginning crawl from seed url...")
         # add seed URL to queue
-        queue.append(lsf.parse_url_string(seed_url))
+        queue.append(parse_url_string(seed_url))
         cliPrint(f'appended {seed_url} to queue...')
 
         iter = 0
@@ -78,7 +78,7 @@ def getLinksStatus(seed_url,output_folder,contains_string):
 
             if len(links) > 0:
                 for i in links:
-                    url_string = lsf.parse_url_string(i)
+                    url_string = parse_url_string(i)
                     if url_string not in queue:
                         cliPrint(f'found new URL: {url_string}')
                         queue.append(url_string) 
@@ -87,6 +87,7 @@ def getLinksStatus(seed_url,output_folder,contains_string):
             iter += 1
 
         db.parse_canonical_urls()
+
 
         network_visualization_path = f'{output_folder}/Network-Visualization_{datetime.today().strftime("%Y-%m-%d")}.html'        
         if os.path.exists(network_visualization_path):
